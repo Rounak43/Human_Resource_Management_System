@@ -7,8 +7,7 @@ import EmployeeLayout from '../layouts/EmployeeLayout';
 import AdminLayout from '../layouts/AdminLayout';
 
 // Pages - Auth
-import Login from '../pages/auth/Login';
-import Register from '../pages/auth/Register';
+import AuthPage from '../pages/auth/AuthPage';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 
 // Pages - Employee
@@ -43,10 +42,11 @@ const AppRoutes = () => {
     <Routes>
       {/* 1. Public Auth Routes */}
       <Route element={<AuthLayout />}>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/register" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
+
 
       {/* 2. Protected Employee Routes */}
       <Route element={<ProtectedRoute><EmployeeLayout /></ProtectedRoute>}>

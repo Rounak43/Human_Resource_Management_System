@@ -16,7 +16,7 @@ const Dashboard = () => {
     <div className="employee-dashboard">
       <div className="welcome-banner">
         <h1>Welcome back, Employee!</h1>
-        <p>Let's make today productive.</p>
+        <p>{"Let's make today productive."}</p>
       </div>
       <div className="dashboard-grid">
         {/* Render quick-actions (Check In/Out) and logs summaries */}

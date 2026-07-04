@@ -9,10 +9,8 @@
 
 .auth-card-wrapper {
   width: 100%;
-  max-width: 440px;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: var(--spacing-xxl) var(--spacing-xl);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+

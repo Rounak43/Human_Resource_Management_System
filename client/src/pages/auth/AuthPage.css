@@ -1,0 +1,408 @@
+/* Auth Portal Container Layout */
+.auth-portal-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 40px 20px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Page Header */
+.auth-portal-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.auth-portal-header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.auth-portal-header .subtitle {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+/* Sliding Box Structure */
+.cont {
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+  width: 900px;
+  height: 580px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  transition: height var(--transition-slow);
+}
+
+.form {
+  position: relative;
+  width: 640px;
+  height: 100%;
+  transition: transform var(--transition-slow);
+  padding: 40px 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: var(--bg-card);
+}
+
+.form h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.form-sub-heading {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* Sign In & Sign Up Form Switching Position */
+.sign-in {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cont.s--signup .sign-in {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translate3d(640px, 0, 0);
+}
+
+.sign-up {
+  transform: translate3d(-900px, 0, 0);
+}
+
+.cont.s--signup .sign-up {
+  transform: translate3d(0, 0, 0);
+}
+
+.signup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* Sub-container overlay containing image text & toggle buttons */
+.sub-cont {
+  overflow: hidden;
+  position: absolute;
+  left: 640px;
+  top: 0;
+  width: 900px;
+  height: 100%;
+  padding-left: 260px;
+  background: var(--bg-card);
+  transition: transform var(--transition-slow);
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cont.s--signup .sub-cont {
+  transform: translate3d(-640px, 0, 0);
+}
+
+/* Sliding background panel (solid gradient without background image) */
+.img {
+  overflow: hidden;
+  z-index: 2;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(
+    135deg,
+    HSL(var(--primary-hue), 85%, 35%) 0%,
+    HSL(var(--secondary-hue), 70%, 25%) 100%
+  );
+}
+
+/* Interactive slide overlay text elements */
+.img__text {
+  z-index: 2;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  padding: 0 24px;
+  text-align: center;
+  color: #fff;
+  transition: transform var(--transition-slow);
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.img__text h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+.img__text p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Slide up and out depending on toggled classes */
+.img__text.m--up {
+  transform: translateY(0);
+}
+
+.cont.s--signup .img__text.m--up {
+  transform: translateY(400px);
+}
+
+.img__text.m--in {
+  transform: translateY(-400px);
+}
+
+.cont.s--signup .img__text.m--in {
+  transform: translateY(0);
+}
+
+/* The Sign In/Sign Up Toggle Button */
+.img__btn {
+  overflow: hidden;
+  z-index: 3;
+  position: relative;
+  width: 130px;
+  height: 42px;
+  margin: 180px auto 0;
+  background: transparent;
+  color: #fff;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border: 2px solid #fff;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.img__btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.img__btn:active {
+  transform: scale(0.95);
+}
+
+.img__btn span {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-slow);
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.img__btn span.m--in {
+  transform: translateY(-50px);
+}
+
+.cont.s--signup .img__btn span.m--in {
+  transform: translateY(0);
+}
+
+.cont.s--signup .img__btn span.m--up {
+  transform: translateY(50px);
+}
+
+/* Inputs and Forms elements styling */
+label {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 16px;
+  box-sizing: border-box;
+}
+
+label span {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-align: left;
+  letter-spacing: 0.5px;
+}
+
+input, select {
+  font-family: var(--font-family);
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  outline: none;
+  box-sizing: border-box;
+  width: 100%;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input:focus, select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px HSL(var(--primary-hue), 85%, 90%);
+}
+
+.select-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+/* Forgot Password Link styling */
+.forgot-pass {
+  margin-top: 16px;
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  width: 100%;
+  align-self: flex-end;
+  transition: color var(--transition-fast);
+}
+
+.forgot-pass:hover {
+  color: var(--primary-color);
+}
+
+/* Action Buttons style override */
+.submit {
+  display: block;
+  margin: 32px auto 0;
+  width: 100%;
+  height: 45px;
+  border-radius: 10px;
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border: none;
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: 0 4px 10px HSL(var(--primary-hue), 85%, 85%);
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px HSL(var(--primary-hue), 85%, 80%);
+}
+
+.submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit:disabled {
+  background-color: var(--text-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Dark Mode Override adjustments */
+@media (prefers-color-scheme: dark) {
+  input:focus, select:focus {
+    box-shadow: 0 0 0 3px HSL(var(--primary-hue), 60%, 25%);
+  }
+  .submit {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+  .submit:hover:not(:disabled) {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Responsive CSS Media Queries */
+@media (max-width: 940px) {
+  .cont {
+    width: 100%;
+    max-width: 440px;
+    height: auto;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .form {
+    width: 100%;
+    height: auto;
+    padding: 30px 24px;
+  }
+
+  /* Hide sliding desktop overlay panels entirely */
+  .sub-cont {
+    position: relative;
+    left: 0;
+    width: 100%;
+    height: auto;
+    padding-left: 0;
+    transform: none !important;
+  }
+
+  .img {
+    display: none;
+  }
+
+  /* Control rendering of Sign In vs Sign Up forms under mobile */
+  /* If signup tab is inactive, hide signup form; otherwise hide login form */
+  .sign-in {
+    display: block;
+  }
+  
+  .cont.s--signup .sign-in {
+    display: none;
+  }
+
+  .sign-up {
+    position: relative;
+    transform: none !important;
+    display: none;
+  }
+
+  .cont.s--signup .sign-up {
+    display: block;
+  }
+
+  .signup-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Insert a mobile-only helper toggle link */
+  /* We will dynamically support switching using a helper link created below form */
+}
