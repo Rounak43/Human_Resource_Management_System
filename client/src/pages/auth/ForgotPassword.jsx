@@ -1,15 +1,11 @@
 import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useContext } from 'react';
+import { Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { NotificationContext } from '../../context/NotificationContext';
 import './ForgotPassword.css';
 
-/**
- * ForgotPassword Page
- * 
- * Responsibilities:
- * - Request password reset tokens via email triggers.
- */
 const ForgotPassword = () => {
   const { showNotification } = useContext(NotificationContext);
   const navigate = useNavigate();
@@ -43,6 +39,18 @@ const ForgotPassword = () => {
       console.error('Forgot password error:', error);
       const errorMsg = error.message || 'Failed to request password reset. Please try again.';
       showNotification(errorMsg, 'error');
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const notify = useContext(NotificationContext);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await authService.forgotPassword(email);
+      notify?.showNotification('Reset link sent to your email!', 'success');
+    } catch (err) {
+      notify?.showNotification(err.message || 'Error occurred', 'danger');
     } finally {
       setIsSubmitting(false);
     }
@@ -74,6 +82,29 @@ const ForgotPassword = () => {
       <Link to="/login" className="back-to-login">
         ← Back to Sign In
       </Link>
+      <p>Enter your email to receive a recovery link</p>
+      
+      <form onSubmit={handleSubmit} className="forgot-password-form">
+        <div className="form-group">
+          <label className="form-label">Email Address</label>
+          <input 
+            type="email" 
+            className="form-input" 
+            placeholder="name@company.com" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required 
+            disabled={isSubmitting}
+          />
+        </div>
+        <button type="submit" className="forgot-submit-btn" disabled={isSubmitting}>
+          {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+        </button>
+      </form>
+
+      <div className="forgot-footer">
+        <Link to="/login" className="back-login-link">← Back to Login</Link>
+      </div>
     </div>
   );
 };

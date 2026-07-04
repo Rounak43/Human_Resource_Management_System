@@ -1,5 +1,183 @@
-.employee-leave {
+.leave-page-container {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.leave-header h2 {
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.leave-header p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.leave-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: var(--spacing-lg);
+}
+
+/* Card details */
+.leave-form-card, .leave-history-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.leave-form-card h3, .leave-history-card h3 {
+  font-size: var(--font-size-md);
+  margin-bottom: var(--spacing-md);
+  color: var(--text-primary);
+  border-left: 3px solid var(--primary-color);
+  padding-left: var(--spacing-sm);
+}
+
+.leave-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.form-dates-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+.textarea-input {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.leave-submit-btn {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: #fff;
+  border: none;
+  padding: 0.8rem;
+  border-radius: var(--border-radius-md);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.leave-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px HSL(var(--primary-hue), 85%, 57%, 0.3);
+}
+
+.leave-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Leave History Items */
+.history-loading {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+}
+
+.no-history-box {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.leave-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: var(--spacing-xs);
+}
+
+.leave-history-item {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  background-color: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  transition: transform var(--transition-fast);
+}
+
+.leave-history-item:hover {
+  transform: translateX(2px);
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leave-type-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.item-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.days-count {
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary-color);
+}
+
+.item-reason, .item-remarks {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.item-remarks {
+  color: var(--text-primary);
+  background-color: var(--bg-card);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  border-left: 2px solid var(--secondary-color);
+}
+
+/* Status badge color modifications */
+.status-badge.pending {
+  background-color: var(--warning-light);
+  color: var(--warning-color);
+}
+
+.status-badge.approved {
+  background-color: var(--success-light);
+  color: var(--success-color);
+}
+
+.status-badge.rejected {
+  background-color: var(--danger-light);
+  color: var(--danger-color);
+}
+
+@media (max-width: 900px) {
+  .leave-content-grid {
+    grid-template-columns: 1fr;
+  }
 }

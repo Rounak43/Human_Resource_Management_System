@@ -1,33 +1,88 @@
-.login-page h2 {
-  text-align: center;
-  margin-bottom: var(--spacing-xs);
-  font-size: var(--font-size-xl);
+.login-page {
+  display: flex;
+  flex-direction: column;
 }
 
-.login-page p {
+.login-header {
   text-align: center;
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
   margin-bottom: var(--spacing-xl);
+}
+
+.login-header h2 {
+  font-size: var(--font-size-xxl);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.login-header p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.login-error-alert {
+  background-color: var(--danger-light);
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
+  border-radius: var(--border-radius-md);
+  padding: 0.75rem var(--spacing-md);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-md);
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.login-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--spacing-xs);
+}
+
+.forgot-password-link {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
 }
 
 .login-submit-btn {
-  background-color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   color: var(--text-on-primary);
+  padding: 0.8rem 1.5rem;
   border: none;
-  padding: 0.75rem;
   border-radius: var(--border-radius-md);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  margin-top: var(--spacing-md);
-  transition: background-color var(--transition-fast);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: 0 4px 12px HSL(var(--primary-hue), 85%, 57%, 0.2);
 }
 
 .login-submit-btn:hover {
-  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px HSL(var(--primary-hue), 85%, 57%, 0.35);
+}
+
+.login-submit-btn:active {
+  transform: translateY(0);
+}
+
+.login-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-footer {
+  margin-top: var(--spacing-xl);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }

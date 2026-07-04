@@ -1,5 +1,99 @@
-.attendance-management {
+.attendance-mgmt-page {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.mgmt-header h2 {
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.mgmt-header p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.mgmt-filters-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  display: flex;
+  gap: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.filter-group label {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.filter-ctrl {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  outline: none;
+  font-size: var(--font-size-sm);
+  min-width: 180px;
+}
+
+.attendance-table-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.remarks-td {
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-secondary);
+}
+
+.correction-edit-btn {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.correction-edit-btn:hover {
+  border-color: var(--primary-color);
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+/* Status specific colors */
+.status-badge.present { background-color: var(--success-light); color: var(--success-color); }
+.status-badge.absent { background-color: var(--danger-light); color: var(--danger-color); }
+.status-badge.leave { background-color: var(--info-light); color: var(--info-color); }
+.status-badge.half_day { background-color: HSL(38, 95%, 96%); color: HSL(38, 95%, 50%); }
+.status-badge.holiday { background-color: HSL(260, 80%, 96%); color: HSL(260, 70%, 50%); }
+.status-badge.weekend { background-color: HSL(210, 20%, 90%); color: HSL(210, 10%, 40%); }
+
+@media (max-width: 768px) {
+  .mgmt-filters-card {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
 }

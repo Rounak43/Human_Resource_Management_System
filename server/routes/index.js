@@ -5,6 +5,8 @@ import attendanceRoutes from './attendanceRoutes.js';
 import leaveRoutes from './leaveRoutes.js';
 import payrollRoutes from './payrollRoutes.js';
 import adminRoutes from './adminRoutes.js';
+import notificationRoutes from './notificationRoutes.js';
+import departmentRoutes from './departmentRoutes.js';
 
 import { verifyToken } from '../middleware/authMiddleware.js';
 import { authorizeRoles } from '../middleware/roleMiddleware.js';
@@ -19,6 +21,8 @@ router.use('/employee', verifyToken, employeeRoutes);
 router.use('/attendance', verifyToken, attendanceRoutes);
 router.use('/leave', verifyToken, leaveRoutes);
 router.use('/payroll', verifyToken, payrollRoutes);
+router.use('/notifications', verifyToken, notificationRoutes);
+router.use('/departments', verifyToken, departmentRoutes);
 
 // 3. Admin routes (Protected & Role Restricted)
 router.use('/admin', verifyToken, authorizeRoles('admin', 'hr'), adminRoutes);

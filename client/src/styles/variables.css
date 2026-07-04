@@ -84,7 +84,7 @@
 
 /* Dark Mode Color Overrides */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.theme-light) {
     --bg-app: HSL(220, 25%, 8%);
     --bg-card: HSL(220, 25%, 12%);
     --bg-sidebar: HSL(220, 25%, 10%);
@@ -100,4 +100,21 @@
     --shadow-md: 0 4px 12px RGBA(0, 0, 0, 0.3);
     --shadow-lg: 0 12px 24px RGBA(0, 0, 0, 0.45);
   }
+}
+
+:root.theme-dark {
+  --bg-app: HSL(220, 25%, 8%);
+  --bg-card: HSL(220, 25%, 12%);
+  --bg-sidebar: HSL(220, 25%, 10%);
+  
+  --text-primary: HSL(0, 0%, 94%);
+  --text-secondary: HSL(220, 10%, 75%);
+  --text-muted: HSL(220, 10%, 55%);
+  
+  --border-color: HSL(220, 20%, 20%);
+  --border-color-hover: HSL(220, 20%, 28%);
+
+  --shadow-sm: 0 2px 4px RGBA(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px RGBA(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 24px RGBA(0, 0, 0, 0.45);
 }

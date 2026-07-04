@@ -1,5 +1,8 @@
 import { createContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
+import React, { createContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
+import api from '../services/api';
 
 export const AuthContext = createContext(null);
 
@@ -46,6 +49,16 @@ export const AuthProvider = ({ children }) => {
         const isExpired = decoded.exp && decoded.exp * 1000 < Date.now();
         if (!isExpired) {
           setUser(decoded);
+    const checkToken = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const response = await api.get('/auth/me');
+        if (response.success) {
+          setUser(response.data);
           setIsAuthenticated(true);
         } else {
           localStorage.removeItem('token');
@@ -72,6 +85,31 @@ export const AuthProvider = ({ children }) => {
       return activeUser;
     } else {
       throw new Error('Authentication response is missing token details.');
+      } catch (error) {
+        console.error('Failed to verify token', error);
+        localStorage.removeItem('token');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkToken();
+  }, []);
+
+  const login = async (email, password) => {
+    try {
+      const response = await authService.login(email, password);
+      if (response.success && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+        return response.data.user;
+      } else {
+        throw new Error(response.message || 'Authentication failed');
+      }
+    } catch (error) {
+      setIsAuthenticated(false);
+      throw error;
     }
   };
 
@@ -81,8 +119,16 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
   };
 
+  const updateProfileState = (updatedUser) => {
+    setUser(prev => ({
+      ...prev,
+      name: updatedUser.full_name || prev.name,
+      ...updatedUser
+    }));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout, updateProfileState }}>
       {children}
     </AuthContext.Provider>
   );
