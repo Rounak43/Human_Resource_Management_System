@@ -110,7 +110,7 @@ class Attendance {
 
     if (employeeId) {
       query += ` AND a.employee_id = $${paramIndex}`;
-      values.push(parseInt(employeeId));
+      values.push(employeeId);
       paramIndex++;
     }
 

@@ -6,6 +6,48 @@ import jwt from 'jsonwebtoken';
 import { jwtConfig } from '../config/jwt.js';
 import pool from '../config/db.js';
 
+async function generateEmployeeId(fullName, client) {
+  const cleanName = fullName.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
+  const parts = cleanName.trim().split(/\s+/).filter(Boolean);
+  
+  let initials = '';
+  if (parts.length >= 2) {
+    initials = parts[0].substring(0, 2) + parts[parts.length - 1].substring(0, 2);
+  } else if (parts.length === 1) {
+    initials = parts[0].substring(0, 4);
+  } else {
+    initials = 'TEMP';
+  }
+  
+  while (initials.length < 4) {
+    initials += 'X';
+  }
+
+  const year = new Date().getFullYear();
+
+  const { rows } = await client.query(
+    `SELECT employee_id FROM employees WHERE employee_id LIKE $1`,
+    [`OI%${year}%`]
+  );
+
+  let maxSeq = 0;
+  for (const row of rows) {
+    const id = row.employee_id;
+    if (id.length >= 14) {
+      const seqStr = id.substring(id.length - 4);
+      const seq = parseInt(seqStr, 10);
+      if (!isNaN(seq) && seq > maxSeq) {
+        maxSeq = seq;
+      }
+    }
+  }
+
+  const nextSeq = maxSeq + 1;
+  const nextSeqStr = String(nextSeq).padStart(4, '0');
+
+  return `OI${initials}${year}${nextSeqStr}`;
+}
+
 /**
  * Authentication Business Operations Service
  */
@@ -59,14 +101,15 @@ export const authService = {
     try {
       await client.query('BEGIN');
 
+      const employeeId = await generateEmployeeId(name, client);
+
       // 1. Create Employee Profile first
       const empQuery = `
-        INSERT INTO employees (full_name, phone, address, department_id, designation, salary)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO employees (employee_id, full_name, phone, address, department_id, designation, salary)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING employee_id;
       `;
-      const empRes = await client.query(empQuery, [name, phone, address, department_id, designation, salary || 0.00]);
-      const employeeId = empRes.rows[0].employee_id;
+      const empRes = await client.query(empQuery, [employeeId, name, phone, address, department_id, designation, salary || 0.00]);
 
       // 2. Map role
       let roleId = 2; // Employee

@@ -32,7 +32,7 @@ export const adminController = {
   editEmployee: async (req, res, next) => {
     try {
       const { id } = req.params;
-      const data = await adminService.editEmployee(parseInt(id), req.body);
+      const data = await adminService.editEmployee(id, req.body);
       res.status(200).json({
         success: true,
         message: 'Employee updated successfully',
@@ -46,7 +46,7 @@ export const adminController = {
   deleteEmployee: async (req, res, next) => {
     try {
       const { id } = req.params;
-      await adminService.deleteEmployee(parseInt(id));
+      await adminService.deleteEmployee(id);
       res.status(200).json({
         success: true,
         message: 'Employee deleted successfully'
@@ -134,7 +134,7 @@ export const adminController = {
       const { employeeId } = req.params;
       const { bonus, deductions, month, year } = req.body;
       const generatedBy = req.user.employee_id;
-      const data = await adminService.processPayroll(parseInt(employeeId), { 
+      const data = await adminService.processPayroll(employeeId, { 
         bonus, 
         deductions, 
         month, 
@@ -167,7 +167,7 @@ export const adminController = {
   updateSalaryConfig: async (req, res, next) => {
     try {
       const { employeeId } = req.params;
-      const data = await adminService.updateSalaryConfig(parseInt(employeeId), req.body);
+      const data = await adminService.updateSalaryConfig(employeeId, req.body);
       res.status(200).json({
         success: true,
         message: 'Salary configuration updated successfully',
