@@ -1,41 +1,60 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
+import { NotificationContext } from '../../context/NotificationContext';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import './Navbar.css';
 
 /**
- * Navbar Component
+ * Navbar Component with top-level navigation links, attendance widget, and avatar dropdown.
  */
-const Navbar = ({ title, onToggleSidebar }) => {
+const Navbar = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const notify = useContext(NotificationContext);
   
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [companyLogo, setCompanyLogo] = useState('');
+  const [companyName, setCompanyName] = useState('Odoo India');
+  const [attendanceRecord, setAttendanceRecord] = useState(null);
 
   const profileRef = useRef(null);
   const notifyRef = useRef(null);
 
-  // Fetch notifications
-  const fetchNotifications = async () => {
+  // Fetch notifications and company info
+  const loadData = async () => {
     try {
       const res = await api.get('/notifications');
       if (res.success) {
         setNotifications(res.data);
       }
+      
+      // Load company details from profile
+      const profRes = await api.get('/employee/profile');
+      if (profRes.success && profRes.data) {
+        setCompanyName(profRes.data.company_name || 'Odoo India');
+        setCompanyLogo(profRes.data.company_logo || '');
+      }
+
+      // Load today's attendance status
+      if (user?.role === 'employee') {
+        const attRes = await api.get('/attendance/today');
+        if (attRes.success) {
+          setAttendanceRecord(attRes.data);
+        }
+      }
     } catch (err) {
-      console.error('Failed to load notifications', err);
+      console.error('Failed to load notifications or attendance info', err);
     }
   };
 
   useEffect(() => {
     if (user) {
-      fetchNotifications();
-      // Poll notifications every 30 seconds for dynamics
-      const interval = setInterval(fetchNotifications, 30000);
+      loadData();
+      const interval = setInterval(loadData, 30000);
       return () => clearInterval(interval);
     }
   }, [user]);
@@ -74,47 +93,89 @@ const Navbar = ({ title, onToggleSidebar }) => {
     }
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      if (user?.role === 'admin') {
-        navigate(`/admin/employees?search=${searchQuery}`);
-      } else {
-        navigate(`/employee/attendance?search=${searchQuery}`);
-      }
-    }
-  };
-
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleCheckIn = async () => {
+    try {
+      const res = await api.post('/attendance/check-in', {});
+      if (res.success) {
+        notify?.showNotification('Successfully checked in! Status: Present.', 'success');
+        // Reload today's status
+        const attRes = await api.get('/attendance/today');
+        if (attRes.success) setAttendanceRecord(attRes.data);
+      }
+    } catch (err) {
+      notify?.showNotification(err.message || 'Check-in failed', 'danger');
+    }
+  };
+
+  const handleCheckOut = async () => {
+    try {
+      const res = await api.post('/attendance/check-out', {});
+      if (res.success) {
+        notify?.showNotification('Successfully checked out! Shift logged.', 'success');
+        // Reload today's status
+        const attRes = await api.get('/attendance/today');
+        if (attRes.success) setAttendanceRecord(attRes.data);
+      }
+    } catch (err) {
+      notify?.showNotification(err.message || 'Check-out failed', 'danger');
+    }
   };
 
   const userInitials = user?.name
     ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
     : 'HR';
 
+  const isHRAdmin = user?.role === 'admin' || user?.role === 'hr';
+  const directoryPath = isHRAdmin ? '/admin/directory' : '/employee/directory';
+  const attendancePath = isHRAdmin ? '/admin/attendance' : '/employee/attendance';
+  const timeOffPath = isHRAdmin ? '/admin/leaves' : '/employee/leave';
+
   return (
     <header className="navbar">
       <div className="navbar-left">
-        <button className="sidebar-toggle-btn" onClick={onToggleSidebar}>
-          ☰
-        </button>
-        <span className="navbar-section-title">{title}</span>
+        <div className="navbar-logo-area">
+          {companyLogo ? (
+            <img src={companyLogo} alt="Company Logo" className="navbar-company-logo" />
+          ) : (
+            <span className="navbar-logo-placeholder">🏢</span>
+          )}
+          <span className="navbar-company-name">{companyName}</span>
+        </div>
       </div>
 
-      <form className="navbar-search" onSubmit={handleSearchSubmit}>
-        <span className="search-icon">🔍</span>
-        <input 
-          type="text" 
-          placeholder="Search employees, logs, payroll..." 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </form>
+      {/* Top Level Horizontal Navigation Links */}
+      <nav className="navbar-nav-links">
+        <Link to={directoryPath} className="nav-link-item">Employees</Link>
+        <Link to={attendancePath} className="nav-link-item">Attendance</Link>
+        <Link to={timeOffPath} className="nav-link-item">Time Off</Link>
+      </nav>
 
       <div className="navbar-right">
-        {/* Notifications */}
+        {/* Floating Attendance Check In/Out Widget */}
+        {user && user.role === 'employee' && (
+          <div className="navbar-attendance-widget">
+            {!attendanceRecord || !attendanceRecord.check_in_time ? (
+              <button className="attendance-btn checkin-btn" onClick={handleCheckIn}>
+                ⏱️ Check In
+              </button>
+            ) : !attendanceRecord.check_out_time ? (
+              <button className="attendance-btn checkout-btn" onClick={handleCheckOut}>
+                <span className="pulse-green-dot"></span> Check Out
+              </button>
+            ) : (
+              <button className="attendance-btn completed-btn" disabled>
+                ✅ Checked Out
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Notifications Dropdown */}
         <div className="navbar-notification-container" ref={notifyRef}>
           <button 
             className="navbar-icon-btn" 
@@ -159,7 +220,7 @@ const Navbar = ({ title, onToggleSidebar }) => {
           )}
         </div>
 
-        {/* User Profile */}
+        {/* User Profile Trigger & Dropdown */}
         <div className="navbar-profile-container" ref={profileRef}>
           <button 
             className="navbar-profile-trigger" 
@@ -169,22 +230,31 @@ const Navbar = ({ title, onToggleSidebar }) => {
               {userInitials}
             </div>
             <div className="navbar-user-info">
-              <span className="user-name">{user?.name || 'HR User'}</span>
-              <span className="user-role">{user?.role === 'admin' ? 'Admin / HR' : 'Employee'}</span>
+              <span className="user-name">{user?.name || 'User'}</span>
+              <span className="user-role">{isHRAdmin ? 'Admin / HR' : 'Employee'}</span>
             </div>
             <span className="dropdown-caret">▼</span>
           </button>
 
           {showProfileMenu && (
             <div className="profile-dropdown-menu">
-              {user?.role === 'employee' && (
-                <Link to="/employee/profile" className="dropdown-item" onClick={() => setShowProfileMenu(false)}>
+              {isHRAdmin ? (
+                <Link 
+                  to={`/admin/directory`} 
+                  className="dropdown-item" 
+                  onClick={() => setShowProfileMenu(false)}
+                >
+                  👤 My Profile
+                </Link>
+              ) : (
+                <Link 
+                  to="/employee/profile" 
+                  className="dropdown-item" 
+                  onClick={() => setShowProfileMenu(false)}
+                >
                   👤 My Profile
                 </Link>
               )}
-              <Link to="/employee/settings" className="dropdown-item" onClick={() => setShowProfileMenu(false)}>
-                ⚙️ Settings
-              </Link>
               <hr />
               <button onClick={handleLogout} className="dropdown-item logout-menu-btn">
                 🚪 Logout

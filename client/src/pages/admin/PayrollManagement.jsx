@@ -141,7 +141,7 @@ const PayrollManagement = () => {
                 >
                   {employees.map(emp => (
                     <option key={emp.employee_id} value={emp.employee_id}>
-                      {emp.full_name} (${parseFloat(emp.salary).toLocaleString()}/mo)
+                      {emp.full_name} (₹{parseFloat(emp.salary).toLocaleString()}/mo)
                     </option>
                   ))}
                 </select>
@@ -175,7 +175,7 @@ const PayrollManagement = () => {
 
               <div className="form-row-2">
                 <div className="form-group">
-                  <label className="form-label">Bonus / Allowances ($)</label>
+                  <label className="form-label">Bonus / Allowances (₹)</label>
                   <input 
                     type="number" 
                     value={bonus} 
@@ -185,7 +185,7 @@ const PayrollManagement = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Deductions ($)</label>
+                  <label className="form-label">Deductions (₹)</label>
                   <input 
                     type="number" 
                     value={deductions} 
@@ -213,7 +213,7 @@ const PayrollManagement = () => {
                     <span>{emp.designation} &bull; {emp.department_name}</span>
                   </div>
                   <div className="salary-value-trigger">
-                    <strong>${parseFloat(emp.salary).toLocaleString()}</strong>
+                    <strong>₹{parseFloat(emp.salary).toLocaleString()}</strong>
                     <button onClick={() => handleOpenSalaryEdit(emp)} className="adjust-salary-trigger">
                       ✏️ Scale
                     </button>
@@ -256,10 +256,10 @@ const PayrollManagement = () => {
                           <td>PAY-{rec.payroll_id}</td>
                           <td><strong>{rec.full_name}</strong></td>
                           <td>{rec.month} {rec.year}</td>
-                          <td>${parseFloat(rec.basic_salary).toLocaleString()}</td>
-                          <td>+${parseFloat(rec.bonus).toLocaleString()}</td>
-                          <td>-${parseFloat(rec.deductions).toLocaleString()}</td>
-                          <td className="net-pay-col">${parseFloat(rec.net_salary).toLocaleString()}</td>
+                          <td>₹{parseFloat(rec.basic_salary).toLocaleString()}</td>
+                          <td>+₹{parseFloat(rec.bonus).toLocaleString()}</td>
+                          <td>-₹{parseFloat(rec.deductions).toLocaleString()}</td>
+                          <td className="net-pay-col">₹{parseFloat(rec.net_salary).toLocaleString()}</td>
                           <td>{rec.generated_by_name || 'System Auto'}</td>
                         </tr>
                       ))
@@ -285,7 +285,7 @@ const PayrollManagement = () => {
               <p className="modal-sub-label">Adjusting base monthly salary structure for: <strong>{targetEmp?.full_name}</strong></p>
               
               <div className="form-group">
-                <label className="form-label">New Monthly Basic Salary ($)</label>
+                <label className="form-label">New Monthly Basic Salary (₹)</label>
                 <input 
                   type="number" 
                   className="form-input" 

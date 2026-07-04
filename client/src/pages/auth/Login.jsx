@@ -29,10 +29,12 @@ const Login = () => {
         showNotification('Successfully logged in!', 'success');
       }
       
-      if (loggedUser.role === 'admin' || loggedUser.role === 'hr') {
-        navigate('/admin/dashboard');
+      if (loggedUser.must_change_password) {
+        navigate('/change-password');
+      } else if (loggedUser.role === 'admin' || loggedUser.role === 'hr') {
+        navigate('/admin/directory');
       } else {
-        navigate('/employee/dashboard');
+        navigate('/employee/directory');
       }
     } catch (err) {
       console.error(err);
@@ -61,11 +63,11 @@ const Login = () => {
 
       <form className="login-form" onSubmit={handleSubmit}>
         <div className="form-group">
-          <label className="form-label">Email Address</label>
+          <label className="form-label">Login ID (Employee or Admin ID)</label>
           <input 
-            type="email" 
+            type="text" 
             className="form-input" 
-            placeholder="name@company.com" 
+            placeholder="e.g. OIROSH20260001" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required 

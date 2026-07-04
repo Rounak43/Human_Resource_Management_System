@@ -100,8 +100,9 @@ export const adminController = {
   approveLeave: async (req, res, next) => {
     try {
       const { id } = req.params;
+      const { comment, remarks } = req.body;
       const approvedBy = req.user.employee_id;
-      const data = await adminService.approveLeave(parseInt(id), approvedBy);
+      const data = await adminService.approveLeave(parseInt(id), comment || remarks, approvedBy);
       res.status(200).json({
         success: true,
         message: 'Leave approved successfully',
@@ -115,9 +116,9 @@ export const adminController = {
   rejectLeave: async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { adminComment } = req.body;
+      const { comment, adminComment, remarks } = req.body;
       const approvedBy = req.user.employee_id;
-      const data = await adminService.rejectLeave(parseInt(id), adminComment, approvedBy);
+      const data = await adminService.rejectLeave(parseInt(id), adminComment || comment || remarks, approvedBy);
       res.status(200).json({
         success: true,
         message: 'Leave rejected successfully',

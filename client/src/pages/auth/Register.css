@@ -35,8 +35,34 @@
 
 .register-submit-btn:hover {
   background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px HSL(var(--primary-hue), 85%, 57%, 0.25);
+}
+
+.register-info-alert {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  font-size: var(--font-size-xs);
+  padding: 0.6rem var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  line-height: 1.4;
+  margin-bottom: var(--spacing-md);
+  border: 1px solid HSL(var(--primary-hue), 85%, 93%);
+}
+
+.register-divider {
+  border: 0;
+  border-top: 1px dashed var(--border-color);
+  margin: var(--spacing-md) 0;
+}
+
+.admin-form-heading {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
 }
 
 .register-footer {
   margin-top: var(--spacing-lg);
+  text-align: center;
 }

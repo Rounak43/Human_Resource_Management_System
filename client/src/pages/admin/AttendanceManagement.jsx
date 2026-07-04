@@ -9,10 +9,13 @@ const AttendanceManagement = () => {
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
 
   // Filters
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().substring(0, 10));
   const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [selectedDept, setSelectedDept] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Modal Control
   const [showEditModal, setShowEditModal] = useState(false);
@@ -29,15 +32,22 @@ const AttendanceManagement = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      // Query records based on Date and Employee ID select
       const res = await api.get(`/admin/attendance?date=${selectedDate}&employeeId=${selectedEmployee}`);
       if (res.success) {
         setLogs(res.data);
       }
 
-      // Load employees list for dropdown
-      const empRes = await api.get('/admin/employees');
+      // Load employees list for filter dropdown
+      const empRes = await api.get('/employees');
       if (empRes.success) {
         setEmployees(empRes.data);
+      }
+
+      // Load departments list for filter dropdown
+      const deptRes = await api.get('/departments');
+      if (deptRes.success) {
+        setDepartments(deptRes.data);
       }
     } catch (err) {
       console.error(err);
@@ -58,7 +68,6 @@ const AttendanceManagement = () => {
     const formatDT = (dtStr) => {
       if (!dtStr) return '';
       const d = new Date(dtStr);
-      // adjust for local timezone ISO
       const pad = (n) => String(n).padStart(2, '0');
       return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
@@ -95,6 +104,17 @@ const AttendanceManagement = () => {
     }
   };
 
+  // Perform client-side filter computation
+  const filteredLogs = logs.filter(log => {
+    const matchSearch = log.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        log.employee_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (log.designation && log.designation.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchDept = selectedDept === '' || String(log.department_id) === selectedDept;
+    
+    return matchSearch && matchDept;
+  });
+
   const statusOptions = ['Present', 'Absent', 'Leave', 'Half Day', 'Holiday', 'Weekend'];
 
   return (
@@ -125,10 +145,35 @@ const AttendanceManagement = () => {
             <option value="">All Employees</option>
             {employees.map(emp => (
               <option key={emp.employee_id} value={emp.employee_id}>
-                {emp.full_name} (EMP-{emp.employee_id})
+                {emp.full_name} ({emp.employee_id})
               </option>
             ))}
           </select>
+        </div>
+        <div className="filter-group">
+          <label>Filter Department</label>
+          <select 
+            value={selectedDept}
+            onChange={(e) => setSelectedDept(e.target.value)}
+            className="filter-ctrl"
+          >
+            <option value="">All Departments</option>
+            {departments.map(d => (
+              <option key={d.department_id} value={d.department_id}>
+                {d.department_name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-group flex-grow">
+          <label>Search Text</label>
+          <input 
+            type="text" 
+            placeholder="Search by ID, name, designation..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="filter-ctrl"
+          />
         </div>
       </div>
 
@@ -154,14 +199,14 @@ const AttendanceManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {logs.length === 0 ? (
+                {filteredLogs.length === 0 ? (
                   <tr>
                     <td colSpan="10" style={{ textAlign: 'center' }}>No attendance registers logged for this query.</td>
                   </tr>
                 ) : (
-                  logs.map((log) => (
+                  filteredLogs.map((log) => (
                     <tr key={log.attendance_id}>
-                      <td>EMP-{log.employee_id}</td>
+                      <td style={{ fontWeight: '600' }}>{log.employee_id}</td>
                       <td><strong>{log.full_name}</strong></td>
                       <td>{log.department_name || 'Unassigned'}</td>
                       <td>{log.check_in_time ? new Date(log.check_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</td>
@@ -203,7 +248,7 @@ const AttendanceManagement = () => {
                 <input 
                   type="text" 
                   className="form-input" 
-                  value={`${targetLog?.full_name} (EMP-${targetLog?.employee_id})`} 
+                  value={`${targetLog?.full_name} (${targetLog?.employee_id})`} 
                   disabled 
                 />
               </div>

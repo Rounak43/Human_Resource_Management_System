@@ -10,6 +10,7 @@ import AdminLayout from '../layouts/AdminLayout';
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import ForgotPassword from '../pages/auth/ForgotPassword';
+import ChangePassword from '../pages/auth/ChangePassword';
 
 // Pages - Employee
 import EmployeeDashboard from '../pages/employee/Dashboard';
@@ -18,6 +19,7 @@ import EmployeeAttendance from '../pages/employee/Attendance';
 import EmployeeLeave from '../pages/employee/Leave';
 import EmployeePayroll from '../pages/employee/Payroll';
 import EmployeeSettings from '../pages/employee/Settings';
+import EmployeeDirectory from '../pages/employee/EmployeeDirectory';
 
 // Pages - Admin
 import AdminDashboard from '../pages/admin/Dashboard';
@@ -45,19 +47,28 @@ const AppRoutes = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
 
-      {/* 2. Protected Employee Routes */}
+      {/* 2. Change Password Route (Protected but allows pending password changes) */}
+      <Route element={<ProtectedRoute allowPasswordChangePending={true}><AuthLayout /></ProtectedRoute>}>
+        <Route path="/change-password" element={<ChangePassword />} />
+      </Route>
+
+      {/* 3. Protected Employee Routes */}
       <Route element={<ProtectedRoute><EmployeeLayout /></ProtectedRoute>}>
         <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
+        <Route path="/employee/directory" element={<EmployeeDirectory />} />
         <Route path="/employee/profile" element={<EmployeeProfile />} />
+        <Route path="/employee/profile/:employeeId" element={<EmployeeProfile />} />
         <Route path="/employee/attendance" element={<EmployeeAttendance />} />
         <Route path="/employee/leave" element={<EmployeeLeave />} />
         <Route path="/employee/payroll" element={<EmployeePayroll />} />
         <Route path="/employee/settings" element={<EmployeeSettings />} />
       </Route>
 
-      {/* 3. Protected Admin Routes */}
+      {/* 4. Protected Admin Routes */}
       <Route element={<ProtectedRoute><RoleGuard allowedRoles={['admin', 'hr']}><AdminLayout /></RoleGuard></ProtectedRoute>}>
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/directory" element={<EmployeeDirectory />} />
+        <Route path="/admin/profile/:employeeId" element={<EmployeeProfile />} />
         <Route path="/admin/employees" element={<EmployeeManagement />} />
         <Route path="/admin/attendance" element={<AttendanceManagement />} />
         <Route path="/admin/leaves" element={<LeaveManagement />} />

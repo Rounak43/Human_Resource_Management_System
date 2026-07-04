@@ -63,11 +63,11 @@ const Attendance = () => {
   };
 
   // Compute Metrics
-  const totalDays = logs.length;
-  const presentDays = logs.filter(l => l.attendance_status === 'Present').length;
+  const totalDays = logs.length; // Working Days
+  const presentDays = logs.filter(l => l.attendance_status === 'Present' || l.attendance_status === 'Half Day').length;
+  const leaveCount = logs.filter(l => l.attendance_status === 'Leave').length;
   const totalHours = logs.reduce((sum, l) => sum + parseFloat(l.working_hours || 0), 0).toFixed(1);
   const totalOvertime = logs.reduce((sum, l) => sum + parseFloat(l.overtime_hours || 0), 0).toFixed(1);
-  const totalLateMinutes = logs.reduce((sum, l) => sum + parseInt(l.late_minutes || 0), 0);
 
   const monthsList = [
     { value: '2026-07', label: 'July 2026' },
@@ -133,24 +133,24 @@ const Attendance = () => {
       {/* Metrics Summary Grid */}
       <div className="metrics-summary-grid">
         <div className="metric-box">
-          <span className="metric-num">{totalDays}</span>
-          <span className="metric-lbl">Total Days Logged</span>
+          <span className="metric-num text-success">{presentDays}</span>
+          <span className="metric-lbl">Present Days</span>
         </div>
         <div className="metric-box">
-          <span className="metric-num text-success">{presentDays}</span>
-          <span className="metric-lbl">Days Present</span>
+          <span className="metric-num text-info">{leaveCount}</span>
+          <span className="metric-lbl">Leave Count</span>
+        </div>
+        <div className="metric-box">
+          <span className="metric-num">{totalDays}</span>
+          <span className="metric-lbl">Working Days</span>
         </div>
         <div className="metric-box">
           <span className="metric-num">{totalHours} hrs</span>
-          <span className="metric-lbl">Total Hours Worked</span>
+          <span className="metric-lbl">Working Hours</span>
         </div>
         <div className="metric-box">
           <span className="metric-num text-warning">{totalOvertime} hrs</span>
-          <span className="metric-lbl">Overtime Earned</span>
-        </div>
-        <div className="metric-box">
-          <span className="metric-num text-danger">{totalLateMinutes} m</span>
-          <span className="metric-lbl">Total Late Minutes</span>
+          <span className="metric-lbl">Extra Hours</span>
         </div>
       </div>
 

@@ -1,85 +1,49 @@
-import pool from '../config/db.js';
-import Leave from '../models/Leave.js';
-import Payroll from '../models/Payroll.js';
 import Employee from '../models/Employee.js';
 import User from '../models/User.js';
+import Payroll from '../models/Payroll.js';
 import Notification from '../models/Notification.js';
-import { NotFoundError } from '../utils/errors.js';
-import { authService } from './authService.js';
+import Leave from '../models/Leave.js';
+import { NotFoundError, BadRequestError } from '../utils/errors.js';
+import pool from '../config/db.js';
 
 export const adminService = {
-  // Employee Directory CRUD
+  // ----- Employee List -----
   getAllEmployees: async (search = '', department = '') => {
     return Employee.getAll({ search, department_id: department });
   },
 
   addEmployee: async (employeeData) => {
-    // Register employee transactionally using default password
-    const result = await authService.register({
-      name: employeeData.full_name,
-      email: employeeData.email,
-      password: employeeData.password || 'password123',
-      role: employeeData.role || 'Employee',
-      phone: employeeData.phone,
-      address: employeeData.address,
-      department_id: employeeData.department_id,
-      designation: employeeData.designation,
-      salary: employeeData.salary
-    });
-
-    // Send notification
-    await Notification.create({
-      employeeId: result.employee.employee_id,
-      title: 'Welcome to HRMS',
-      message: `Your profile has been created by the HR Administrator. Default password is password123.`,
-      type: 'Announcement'
-    });
-
-    return result;
+    // Falls back to employee creation logic
+    const { employeeService } = await import('./employeeService.js');
+    return employeeService.createEmployee(employeeData);
   },
 
   editEmployee: async (employeeId, employeeData) => {
-    const updated = await Employee.update(employeeId, {
-      full_name: employeeData.full_name,
-      phone: employeeData.phone,
-      address: employeeData.address,
-      department_id: employeeData.department_id,
-      designation: employeeData.designation,
-      salary: employeeData.salary,
-      profile_image: employeeData.profile_image
-    });
-
-    if (!updated) throw new NotFoundError('Employee not found');
-    return updated;
+    const { employeeService } = await import('./employeeService.js');
+    return employeeService.updateEmployee(employeeId, employeeData);
   },
 
   deleteEmployee: async (employeeId) => {
-    return Employee.delete(employeeId);
+    const { employeeService } = await import('./employeeService.js');
+    return employeeService.deleteEmployee(employeeId);
   },
 
-  // Attendance Supervision
+  // ----- Attendance logs -----
   getAllAttendance: async (date = '', employeeId = '') => {
     return Attendance.getAll({ date, employeeId });
   },
 
   editAttendance: async (attendanceId, attendanceData) => {
-    const updated = await Attendance.update(attendanceId, {
-      check_in_time: attendanceData.check_in_time,
-      check_out_time: attendanceData.check_out_time,
-      attendance_status: attendanceData.attendance_status,
-      remarks: attendanceData.remarks
-    });
-
-    if (!updated) throw new NotFoundError('Attendance record not found');
-    return updated;
+    const Attendance = (await import('../models/Attendance.js')).default;
+    return Attendance.update(attendanceId, attendanceData);
   },
 
-  // Leave Reviews
-  approveLeave: async (leaveId, approvedBy) => {
+  // ----- Leave Reviews -----
+  approveLeave: async (leaveId, comment, approvedBy) => {
     const leave = await Leave.updateStatus(leaveId, {
       status: 'Approved',
       approvedBy,
-      remarks: 'Approved by administrator'
+      remarks: comment || 'Approved by administrator'
     });
     if (!leave) throw new NotFoundError('Leave request not found');
 
@@ -113,30 +77,82 @@ export const adminService = {
     return leave;
   },
 
-  // Payroll Processing
-  processPayroll: async (employeeId, { bonus = 0, deductions = 0, month, year, generatedBy }) => {
+  // ----- Automated Payroll Processing -----
+  processPayroll: async (employeeId, { month, year, generatedBy }) => {
     const employee = await Employee.findById(employeeId);
     if (!employee) throw new NotFoundError('Employee not found');
 
-    const basicSalary = parseFloat(employee.salary);
-    const netSalary = basicSalary + parseFloat(bonus) - parseFloat(deductions);
+    const monthMap = {
+      'january': 1, 'february': 2, 'march': 3, 'april': 4, 'may': 5, 'june': 6,
+      'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12
+    };
+    const monthNum = monthMap[month.toLowerCase()] || new Date().getMonth() + 1;
+    const yearNum = parseInt(year) || new Date().getFullYear();
 
+    // 1. Fetch Month Attendance logs
+    const attRes = await pool.query(
+      `SELECT * FROM attendance WHERE employee_id = $1 AND EXTRACT(YEAR FROM attendance_date) = $2 AND EXTRACT(MONTH FROM attendance_date) = $3`,
+      [employeeId, yearNum, monthNum]
+    );
+
+    // Sum Overtime Hours
+    let overtimeHours = 0;
+    for (const att of attRes.rows) {
+      overtimeHours += parseFloat(att.overtime_hours || 0);
+    }
+
+    // 2. Fetch Approved Leave Requests overlapping with query month
+    const leavesRes = await pool.query(
+      `SELECT * FROM leave_requests WHERE employee_id = $1 AND status = 'Approved' AND (EXTRACT(MONTH FROM start_date) = $2 OR EXTRACT(MONTH FROM end_date) = $2)`,
+      [employeeId, monthNum]
+    );
+
+    // Sum Unpaid Leave days
+    let unpaidDays = 0;
+    for (const lr of leavesRes.rows) {
+      if (lr.leave_type && lr.leave_type.toLowerCase().includes('unpaid')) {
+        unpaidDays += lr.number_of_days;
+      }
+    }
+
+    // 3. Compute salary allowances and deductions based on employee parameters
+    const basicSalary = parseFloat(employee.salary || 0);
+
+    const hra = employee.hra_type === 'percentage' ? basicSalary * (parseFloat(employee.hra_value || 0) / 100) : parseFloat(employee.hra_value || 0);
+    const std = employee.standard_allowance_type === 'percentage' ? basicSalary * (parseFloat(employee.standard_allowance_value || 0) / 100) : parseFloat(employee.standard_allowance_value || 0);
+    const travel = employee.travel_allowance_type === 'percentage' ? basicSalary * (parseFloat(employee.travel_allowance_value || 0) / 100) : parseFloat(employee.travel_allowance_value || 0);
+    const bonus = employee.performance_bonus_type === 'percentage' ? basicSalary * (parseFloat(employee.performance_bonus_value || 0) / 100) : parseFloat(employee.performance_bonus_value || 0);
+    const fixed = employee.fixed_allowance_type === 'percentage' ? basicSalary * (parseFloat(employee.fixed_allowance_value || 0) / 100) : parseFloat(employee.fixed_allowance_value || 0);
+
+    const overtimePay = overtimeHours * (basicSalary / 160) * 1.5;
+
+    const pf = employee.provident_fund_type === 'percentage' ? basicSalary * (parseFloat(employee.provident_fund_value || 0) / 100) : parseFloat(employee.provident_fund_value || 0);
+    const pt = employee.professional_tax_type === 'percentage' ? basicSalary * (parseFloat(employee.professional_tax_value || 0) / 100) : parseFloat(employee.professional_tax_value || 0);
+    const otherDeductions = employee.other_deductions_type === 'percentage' ? basicSalary * (parseFloat(employee.other_deductions_value || 0) / 100) : parseFloat(employee.other_deductions_value || 0);
+
+    const unpaidDeduction = unpaidDays * (basicSalary / 30);
+
+    const grossAllowances = hra + std + travel + bonus + fixed + overtimePay;
+    const grossDeductions = pf + pt + otherDeductions + unpaidDeduction;
+    const netSalary = basicSalary + grossAllowances - grossDeductions;
+
+    // 4. Save into payroll registry
     const record = await Payroll.create({
       employeeId,
       month,
-      year: parseInt(year),
+      year: yearNum,
       basicSalary,
-      bonus: parseFloat(bonus),
-      deductions: parseFloat(deductions),
-      netSalary,
+      bonus: parseFloat(grossAllowances.toFixed(2)),
+      deductions: parseFloat(grossDeductions.toFixed(2)),
+      netSalary: parseFloat(netSalary.toFixed(2)),
       generatedBy
     });
 
-    // Notify employee
+    // 5. Notify employee automatically
     await Notification.create({
       employeeId,
       title: 'Payroll Generated',
-      message: `Your salary statement for ${month} ${year} has been generated.`,
+      message: `Your salary statement for ${month} ${yearNum} has been generated. Net pay: ₹${parseFloat(netSalary.toFixed(2)).toLocaleString()}.`,
       type: 'Payroll'
     });
 
@@ -161,37 +177,29 @@ export const adminService = {
 
   // Analytics Reports Generation
   generateCompanyReports: async () => {
-    // Total employees count
     const empCountRes = await pool.query("SELECT COUNT(*) FROM employees");
     const totalEmployees = parseInt(empCountRes.rows[0].count);
 
-    // Present today
     const presentRes = await pool.query(`
       SELECT COUNT(*) FROM attendance 
       WHERE attendance_date = CURRENT_DATE AND attendance_status = 'Present'
     `);
     const presentToday = parseInt(presentRes.rows[0].count);
 
-    // Absent today
     const absentToday = Math.max(0, totalEmployees - presentToday);
 
-    // Pending Leaves
     const pendingRes = await pool.query("SELECT COUNT(*) FROM leave_requests WHERE status = 'Pending'");
     const pendingLeaves = parseInt(pendingRes.rows[0].count);
 
-    // Approved Leaves
     const approvedRes = await pool.query("SELECT COUNT(*) FROM leave_requests WHERE status = 'Approved'");
     const approvedLeaves = parseInt(approvedRes.rows[0].count);
 
-    // Department Count
     const deptCountRes = await pool.query("SELECT COUNT(*) FROM departments");
     const departmentCount = parseInt(deptCountRes.rows[0].count);
 
-    // Total Payroll (All time or last month)
     const payrollRes = await pool.query("SELECT COALESCE(SUM(net_salary), 0) FROM payroll");
     const totalPayroll = parseFloat(payrollRes.rows[0].coalesce);
 
-    // Department distribution
     const deptDistRes = await pool.query(`
       SELECT d.department_name as name, COUNT(e.employee_id)::int as value
       FROM departments d
@@ -199,52 +207,16 @@ export const adminService = {
       GROUP BY d.department_name
     `);
 
-    // Leave distribution by type
-    const leaveDistRes = await pool.query(`
-      SELECT leave_type as type, COUNT(*)::int as count
-      FROM leave_requests
-      GROUP BY leave_type
-    `);
-
-    // Payroll history by month
-    const payrollHistoryRes = await pool.query(`
-      SELECT month || ' ' || year::text as period, SUM(net_salary)::float as amount
-      FROM payroll
-      GROUP BY year, month
-      ORDER BY year DESC, month DESC
-      LIMIT 6
-    `);
-
-    // Attendance trend
-    const attendanceTrendRes = await pool.query(`
-      SELECT attendance_date::text as date,
-             COUNT(*) FILTER (WHERE attendance_status = 'Present')::int as present,
-             COUNT(*) FILTER (WHERE attendance_status = 'Absent')::int as absent
-      FROM attendance
-      GROUP BY attendance_date
-      ORDER BY attendance_date DESC
-      LIMIT 7
-    `);
-
     return {
-      stats: {
-        totalEmployees,
-        presentToday,
-        absentToday,
-        pendingLeaves,
-        approvedLeaves,
-        departmentCount,
-        totalPayrollThisMonth: totalPayroll
-      },
-      charts: {
-        departmentDistribution: deptDistRes.rows,
-        leaveStatistics: leaveDistRes.rows,
-        payrollStatistics: payrollHistoryRes.rows,
-        attendanceTrend: attendanceTrendRes.rows.reverse()
-      }
+      totalEmployees,
+      presentToday,
+      absentToday,
+      pendingLeaves,
+      approvedLeaves,
+      departmentCount,
+      totalPayroll,
+      departmentDistribution: deptDistRes.rows
     };
   }
 };
-
-// Import Attendance inside methods to resolve circular issues if any
-import Attendance from '../models/Attendance.js';
+export default adminService;

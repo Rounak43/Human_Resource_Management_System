@@ -18,6 +18,7 @@ router.use('/auth', authRoutes);
 
 // 2. Employee routes (Protected)
 router.use('/employee', verifyToken, employeeRoutes);
+router.use('/employees', verifyToken, employeeRoutes);
 router.use('/attendance', verifyToken, attendanceRoutes);
 router.use('/leave', verifyToken, leaveRoutes);
 router.use('/payroll', verifyToken, payrollRoutes);

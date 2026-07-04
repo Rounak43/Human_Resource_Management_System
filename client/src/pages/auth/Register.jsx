@@ -11,8 +11,8 @@ const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Employee');
-  const [designation, setDesignation] = useState('Software Engineer');
+  const [companyName, setCompanyName] = useState('');
+  const [companyLogo, setCompanyLogo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -23,16 +23,14 @@ const Register = () => {
         name,
         email,
         password,
-        role,
-        designation,
-        phone: '555-0150',
-        address: 'HQ Office',
-        salary: 60000.00
+        companyName,
+        companyLogo,
+        designation: 'CEO & Founder'
       });
-      notify?.showNotification('Account registered successfully! Please log in.', 'success');
+      notify?.showNotification('Company Workspace and Administrator account initialized successfully! Please log in.', 'success');
       navigate('/login');
     } catch (err) {
-      notify?.showNotification(err.message || 'Registration failed', 'danger');
+      notify?.showNotification(err.message || 'Registration failed. Bootstrap already initialized.', 'danger');
     } finally {
       setIsSubmitting(false);
     }
@@ -40,16 +38,48 @@ const Register = () => {
 
   return (
     <div className="register-page">
-      <h2>Create Account</h2>
-      <p>Register a new HRMS workspace login</p>
+      <h2>Bootstrap HRMS Workspace</h2>
+      <p>Only the first company administrator should register using this page to initialize the workspace directory.</p>
       
+      <div className="register-info-alert">
+        ℹ️ Public registration will be disabled immediately after workspace setup. Employees must be added manually by Admin/HR.
+      </div>
+
       <form onSubmit={handleSubmit} className="register-form">
         <div className="form-group">
-          <label className="form-label">Full Name</label>
+          <label className="form-label">Company Name</label>
           <input 
             type="text" 
             className="form-input" 
-            placeholder="Jane Doe" 
+            placeholder="e.g. Odoo India" 
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            required 
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Company Logo Image URL (Optional)</label>
+          <input 
+            type="text" 
+            className="form-input" 
+            placeholder="https://company.com/logo.png" 
+            value={companyLogo}
+            onChange={(e) => setCompanyLogo(e.target.value)}
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <hr className="register-divider" />
+        <h4 className="admin-form-heading">First Administrator Details</h4>
+
+        <div className="form-group">
+          <label className="form-label">Administrator Full Name</label>
+          <input 
+            type="text" 
+            className="form-input" 
+            placeholder="e.g. John Doe" 
             value={name}
             onChange={(e) => setName(e.target.value)}
             required 
@@ -57,11 +87,11 @@ const Register = () => {
           />
         </div>
         <div className="form-group">
-          <label className="form-label">Email Address</label>
+          <label className="form-label">Administrator Email Address</label>
           <input 
             type="email" 
             className="form-input" 
-            placeholder="jane@company.com" 
+            placeholder="admin@company.com" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required 
@@ -80,32 +110,9 @@ const Register = () => {
             disabled={isSubmitting}
           />
         </div>
-        <div className="form-group">
-          <label className="form-label">Desired Role</label>
-          <select 
-            className="form-input" 
-            value={role} 
-            onChange={(e) => setRole(e.target.value)}
-            disabled={isSubmitting}
-          >
-            <option value="Employee">Employee</option>
-            <option value="Admin">Admin / HR</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label className="form-label">Designation</label>
-          <input 
-            type="text" 
-            className="form-input" 
-            placeholder="e.g. Software Engineer" 
-            value={designation}
-            onChange={(e) => setDesignation(e.target.value)}
-            required 
-            disabled={isSubmitting}
-          />
-        </div>
+
         <button type="submit" className="register-submit-btn" disabled={isSubmitting}>
-          {isSubmitting ? 'Registering...' : 'Register Account'}
+          {isSubmitting ? 'Initializing Workspace...' : 'Initialize Workspace'}
         </button>
       </form>
 

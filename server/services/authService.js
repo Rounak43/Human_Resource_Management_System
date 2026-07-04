@@ -5,13 +5,19 @@ import { BadRequestError, UnauthorizedError } from '../utils/errors.js';
 import jwt from 'jsonwebtoken';
 import { jwtConfig } from '../config/jwt.js';
 import pool from '../config/db.js';
+import { generateEmployeeId } from '../utils/employeeIdGenerator.js';
 
 /**
  * Authentication Business Operations Service
  */
 export const authService = {
-  login: async (email, password) => {
-    const user = await User.findByEmail(email);
+  login: async (loginId, password) => {
+    if (!loginId || !password) {
+      throw new BadRequestError('Required fields: loginId and password');
+    }
+
+    // Allow logging in via Employee ID or email address
+    const user = await User.findByLoginId(loginId);
     if (!user) {
       throw new UnauthorizedError('Invalid credentials');
     }
@@ -24,72 +30,107 @@ export const authService = {
     // Sign jwt token
     const token = jwt.sign(
       { 
-        id: user.id, 
-        name: user.full_name || user.email, 
+        user_id: user.id,
+        employee_id: user.employee_id,
+        id: user.id, // maps req.user.id to user_id
         role: user.role_name.toLowerCase(), 
-        email: user.email, 
-        employee_id: user.employee_id 
+        email: user.email 
       },
       jwtConfig.secret,
       { expiresIn: jwtConfig.expiresIn }
     );
 
+    const employeeDetails = await Employee.findById(user.employee_id);
+
     return { 
       token, 
+      role: user.role_name.toLowerCase(),
       user: { 
         id: user.id, 
-        name: user.full_name || user.email, 
+        user_id: user.id,
+        employee_id: user.employee_id,
+        email: user.email,
         role: user.role_name.toLowerCase(), 
-        email: user.email, 
-        employee_id: user.employee_id 
-      } 
+        name: user.full_name,
+        must_change_password: user.must_change_password
+      },
+      employee: employeeDetails
     };
   },
 
-  register: async ({ name, email, password, role, phone, address, department_id, designation, salary }) => {
-    const existingUser = await User.findByEmail(email);
-    if (existingUser) {
-      throw new BadRequestError('Email already registered');
+  register: async (data) => {
+    const { name, email, password, companyName, companyLogo, phone, address, designation } = data;
+    
+    // 1. Check if public registration is already disabled (any users exist)
+    const userCountRes = await pool.query('SELECT COUNT(*)::int as count FROM users');
+    if (userCountRes.rows[0].count > 0) {
+      throw new BadRequestError('Public registration is disabled. Please contact your administrator.');
+    }
+
+    if (!name || !email || !password || !companyName) {
+      throw new BadRequestError('Required fields: name, email, password, and companyName');
     }
 
     const hashedPassword = await hashPassword(password);
     
-    // We execute inside a transaction client
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
 
-      // 1. Create Employee Profile first
+      // 2. Create Company
+      const compRes = await client.query(
+        `INSERT INTO companies (company_name, company_logo) VALUES ($1, $2) RETURNING company_id`,
+        [companyName, companyLogo || null]
+      );
+      const companyId = compRes.rows[0].company_id;
+
+      // 3. Create Default Department
+      const deptRes = await client.query(
+        `INSERT INTO departments (department_name) VALUES ('Administration') RETURNING department_id`
+      );
+      const departmentId = deptRes.rows[0].department_id;
+
+      // 4. Generate Employee ID for the first Admin
+      const nameParts = name.trim().split(/\s+/);
+      const firstName = nameParts[0] || 'Admin';
+      const lastName = nameParts.slice(1).join(' ') || 'User';
+
+      const employeeId = await generateEmployeeId(client, {
+        companyName,
+        firstName,
+        lastName,
+        joiningDate: new Date()
+      });
+
+      // 5. Create Admin Employee Record
       const empQuery = `
-        INSERT INTO employees (full_name, phone, address, department_id, designation, salary)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING employee_id;
+        INSERT INTO employees (employee_id, full_name, phone, address, department_id, designation, joining_date, salary, company_name, company_id)
+        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_DATE, 0.00, $7, $8)
+        RETURNING *;
       `;
-      const empRes = await client.query(empQuery, [name, phone, address, department_id, designation, salary || 0.00]);
-      const employeeId = empRes.rows[0].employee_id;
+      await client.query(empQuery, [
+        employeeId,
+        name,
+        phone || null,
+        address || null,
+        departmentId,
+        designation || 'CEO/Founder',
+        companyName,
+        companyId
+      ]);
 
-      // 2. Map role
-      let roleId = 2; // Employee
-      if (role && (role.toLowerCase() === 'admin' || role.toLowerCase() === 'hr')) {
-        roleId = 1;
-      }
-
-      // 3. Create User
+      // 6. Create Admin User login (must_change_password = false since they set it themselves)
       const userQuery = `
-        INSERT INTO users (employee_id, email, password_hash, role_id, is_active)
-        VALUES ($1, $2, $3, $4, TRUE)
+        INSERT INTO users (employee_id, email, password_hash, role_id, is_active, must_change_password)
+        VALUES ($1, $2, $3, 1, TRUE, FALSE)
         RETURNING id;
       `;
-      const userRes = await client.query(userQuery, [employeeId, email, hashedPassword, roleId]);
+      const userRes = await client.query(userQuery, [employeeId, email, hashedPassword]);
       const userId = userRes.rows[0].id;
 
-      // 4. Backlink employee to user
-      const updateEmpQuery = `
-        UPDATE employees
-        SET user_id = $1
-        WHERE employee_id = $2;
-      `;
-      await client.query(updateEmpQuery, [userId, employeeId]);
+      // 7. Update Employee and Department backlink managers
+      await client.query('UPDATE employees SET user_id = $1 WHERE employee_id = $2', [userId, employeeId]);
+      await client.query('UPDATE departments SET manager_id = $1 WHERE department_id = $2', [employeeId, departmentId]);
 
       await client.query('COMMIT');
 

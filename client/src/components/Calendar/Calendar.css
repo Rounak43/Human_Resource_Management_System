@@ -1,0 +1,109 @@
+.calendar-wrapper {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 420px;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.calendar-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.cal-nav-btn {
+  background: #f3f4f6;
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #374151;
+}
+.cal-nav-btn:hover {
+  background: #e5e7eb;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  padding-bottom: 6px;
+}
+
+.calendar-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #374151;
+  background: #f9fafb;
+}
+.calendar-cell.empty {
+  background: transparent;
+  cursor: default;
+}
+.calendar-cell:hover:not(.empty) {
+  background: #eef2ff;
+}
+
+.calendar-day-num {
+  z-index: 1;
+}
+
+.calendar-dot {
+  position: absolute;
+  bottom: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-present { background-color: #16a34a; }
+.status-absent { background-color: #dc2626; }
+.status-half { background-color: #f59e0b; }
+.status-leave { background-color: #6366f1; }
+
+.calendar-cell.status-present { background: #ecfdf3; }
+.calendar-cell.status-absent { background: #fef2f2; }
+.calendar-cell.status-half { background: #fffbeb; }
+.calendar-cell.status-leave { background: #eef2ff; }
+
+.calendar-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: #6b7280;
+  flex-wrap: wrap;
+}
+.calendar-legend .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}

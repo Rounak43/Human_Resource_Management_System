@@ -8,10 +8,11 @@ const Leave = () => {
 
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState([]);
-  const [leaveType, setLeaveType] = useState('Casual Leave');
+  const [leaveType, setLeaveType] = useState('Paid Leave');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [remarks, setRemarks] = useState('');
+  const [attachmentUrl, setAttachmentUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchLeaveHistory = async () => {
@@ -49,7 +50,8 @@ const Leave = () => {
         leaveType,
         startDate,
         endDate,
-        remarks
+        remarks,
+        attachmentUrl
       });
 
       if (res.success) {
@@ -57,6 +59,7 @@ const Leave = () => {
         setStartDate('');
         setEndDate('');
         setRemarks('');
+        setAttachmentUrl('');
         fetchLeaveHistory();
       }
     } catch (err) {
@@ -67,7 +70,7 @@ const Leave = () => {
     }
   };
 
-  const leaveTypes = ['Casual Leave', 'Sick Leave', 'Maternity Leave', 'Unpaid Leave', 'Annual Leave'];
+  const leaveTypes = ['Paid Leave', 'Sick Leave', 'Unpaid Leave'];
 
   return (
     <div className="leave-page-container">
@@ -119,12 +122,23 @@ const Leave = () => {
             </div>
 
             <div className="form-group">
+              <label className="form-label">Upload Proof Attachment URL (Optional)</label>
+              <input 
+                type="text" 
+                placeholder="Paste document link/image URL"
+                value={attachmentUrl}
+                onChange={(e) => setAttachmentUrl(e.target.value)}
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-group">
               <label className="form-label">Reason / Remarks</label>
               <textarea 
                 value={remarks} 
                 onChange={(e) => setRemarks(e.target.value)}
                 placeholder="Explain the reason for leave request..."
-                rows="4"
+                rows="3"
                 className="form-input textarea-input"
                 required
               />
@@ -160,6 +174,16 @@ const Leave = () => {
                         <span className="days-count">({request.number_of_days} {request.number_of_days === 1 ? 'day' : 'days'})</span>
                       </div>
                       <p className="item-reason"><strong>Reason:</strong> {request.reason}</p>
+                      
+                      {request.attachment_url && (
+                        <p className="item-attachment">
+                          📎 <strong>Attachment:</strong>{' '}
+                          <a href={request.attachment_url} target="_blank" rel="noopener noreferrer" className="att-link">
+                            View Document File
+                          </a>
+                        </p>
+                      )}
+
                       {request.remarks && (
                         <p className="item-remarks"><strong>Admin Remarks:</strong> {request.remarks}</p>
                       )}

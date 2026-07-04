@@ -144,7 +144,7 @@ const AdminDashboard = () => {
             <span className="card-ico">💵</span>
             <div>
               <span className="lbl">Monthly Net Payroll</span>
-              <span className="val">${stats.totalPayrollThisMonth.toLocaleString()}</span>
+              <span className="val">₹{stats.totalPayrollThisMonth.toLocaleString()}</span>
             </div>
           </div>
           <div className="admin-stats-card dept-card">

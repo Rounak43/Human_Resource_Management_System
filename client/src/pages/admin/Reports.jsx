@@ -60,7 +60,7 @@ const Reports = () => {
           </div>
           <div className="rep-card">
             <span>Net Financial Expenditure</span>
-            <h3>${stats.totalPayrollThisMonth.toLocaleString()}</h3>
+            <h3>₹{stats.totalPayrollThisMonth.toLocaleString()}</h3>
             <p>Net payouts statement sum</p>
           </div>
         </div>
@@ -122,7 +122,7 @@ const Reports = () => {
               const heightPercentage = Math.min(100, (item.amount / maxAmount) * 100);
               return (
                 <div key={idx} className="trend-bar-container">
-                  <span className="trend-val">${item.amount.toLocaleString()}</span>
+                  <span className="trend-val">₹{item.amount.toLocaleString()}</span>
                   <div className="trend-bar-fill" style={{ height: `${heightPercentage}%` }} />
                   <span className="trend-label">{item.period}</span>
                 </div>

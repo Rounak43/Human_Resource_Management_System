@@ -21,29 +21,59 @@ const EmployeeManagement = () => {
   const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
   const [targetEmpId, setTargetEmpId] = useState(null);
 
+  // Success credentials modal control
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdEmpId, setCreatedEmpId] = useState('');
+  const [createdTempPassword, setCreatedTempPassword] = useState('');
+
+  // Predefined job titles
+  const predefinedTitles = [
+    'Software Engineer',
+    'Senior Software Engineer',
+    'QA Automation Engineer',
+    'Product Manager',
+    'UX/UI Designer',
+    'HR Specialist',
+    'HR Manager',
+    'HR Director',
+    'Finance Analyst',
+    'Finance Manager',
+    'Marketing Associate',
+    'Marketing Manager',
+    'IT Support Engineer',
+    'System Administrator',
+    'Customer Success Specialist',
+    'Operations Executive'
+  ];
+
   // Form fields
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [role, setRole] = useState('Employee');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [departmentId, setDepartmentId] = useState('');
-  const [designation, setDesignation] = useState('');
+  const [designation, setDesignation] = useState(predefinedTitles[0]);
   const [salary, setSalary] = useState('');
+  const [companyName, setCompanyName] = useState('Odoo India');
+  const [joiningDate, setJoiningDate] = useState(() => new Date().toISOString().substring(0, 10));
   
   const [saving, setSaving] = useState(false);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const empRes = await api.get('/admin/employees');
+      // Fetch employees list
+      const empRes = await api.get('/employees');
       if (empRes.success) setEmployees(empRes.data);
 
       const deptRes = await api.get('/departments');
       if (deptRes.success) {
         setDepartments(deptRes.data);
-        if (deptRes.data.length > 0) setDepartmentId(deptRes.data[0].department_id);
+        if (deptRes.data.length > 0 && !departmentId) {
+          setDepartmentId(deptRes.data[0].department_id);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -66,15 +96,20 @@ const EmployeeManagement = () => {
 
   const handleOpenAdd = () => {
     setModalMode('add');
-    setFullName('');
+    setFirstName('');
+    setLastName('');
     setEmail('');
-    setPassword('');
     setRole('Employee');
     setPhone('');
     setAddress('');
-    setDesignation('');
+    setDesignation(predefinedTitles[0]);
     setSalary('');
-    if (departments.length > 0) setDepartmentId(departments[0].department_id);
+    setCompanyName('Odoo India');
+    setJoiningDate(new Date().toISOString().substring(0, 10));
+    
+    if (departments.length > 0) {
+      setDepartmentId(departments[0].department_id);
+    }
     setShowModal(true);
   };
 
@@ -84,14 +119,20 @@ const EmployeeManagement = () => {
 
     setModalMode('edit');
     setTargetEmpId(empId);
-    setFullName(emp.full_name);
+
+    // Split name for edit mode input mapping
+    const nameParts = (emp.full_name || '').split(' ');
+    setFirstName(nameParts[0] || '');
+    setLastName(nameParts.slice(1).join(' ') || '');
+    
     setEmail(emp.email || '');
-    setPassword(''); // keep blank
     setPhone(emp.phone || '');
     setAddress(emp.address || '');
     setDepartmentId(emp.department_id || '');
-    setDesignation(emp.designation || '');
+    setDesignation(emp.designation || predefinedTitles[0]);
     setSalary(emp.salary || '');
+    setCompanyName(emp.company_name || 'Odoo India');
+    setJoiningDate(new Date(emp.joining_date).toISOString().substring(0, 10));
     setShowModal(true);
   };
 
@@ -101,7 +142,7 @@ const EmployeeManagement = () => {
     }
 
     try {
-      const res = await api.delete(`/admin/employees/${empId}`);
+      const res = await api.delete(`/employees/${empId}`);
       if (res.success) {
         notify?.showNotification('Employee erased successfully', 'success');
         loadData();
@@ -117,66 +158,96 @@ const EmployeeManagement = () => {
 
     try {
       const payload = {
-        full_name: fullName,
+        firstName,
+        lastName,
+        joiningDate,
+        departmentId: departmentId ? parseInt(departmentId) : null,
+        role,
+        companyName,
+        email,
         phone,
         address,
-        department_id: departmentId ? parseInt(departmentId) : null,
         designation,
         salary: salary ? parseFloat(salary) : 0
       };
 
       if (modalMode === 'add') {
-        payload.email = email;
-        payload.password = password || 'password123';
-        payload.role = role;
-        const res = await api.post('/admin/employees', payload);
+        const res = await api.post('/employees', payload);
         if (res.success) {
           notify?.showNotification('Employee added successfully!', 'success');
           setShowModal(false);
+          
+          // Display the generated login credentials to the admin
+          setCreatedEmpId(res.data.employeeId);
+          setCreatedTempPassword(res.data.temporaryPassword);
+          setShowSuccessModal(true);
+
           loadData();
         }
       } else {
-        const res = await api.put(`/admin/employees/${targetEmpId}`, payload);
+        // Edit payload format maps to update expectations
+        const editPayload = {
+          full_name: `${firstName} ${lastName}`,
+          firstName,
+          lastName,
+          email,
+          phone,
+          address,
+          department_id: departmentId ? parseInt(departmentId) : null,
+          designation,
+          salary: salary ? parseFloat(salary) : 0,
+          companyName
+        };
+
+        const res = await api.put(`/employees/${targetEmpId}`, editPayload);
         if (res.success) {
-          notify?.showNotification('Employee details updated!', 'success');
+          notify?.showNotification('Employee profile updated successfully', 'success');
           setShowModal(false);
           loadData();
         }
       }
     } catch (err) {
       console.error(err);
-      notify?.showNotification(err.message || 'Saving employee failed', 'danger');
+      notify?.showNotification(err.message || 'Saving employee profile failed', 'danger');
     } finally {
       setSaving(false);
     }
   };
 
+  // Client-side search and department filters
   const filteredEmployees = employees.filter((emp) => {
     const matchSearch = emp.full_name.toLowerCase().includes(search.toLowerCase()) ||
-                        emp.designation.toLowerCase().includes(search.toLowerCase()) ||
-                        (emp.email && emp.email.toLowerCase().includes(search.toLowerCase()));
+                        emp.employee_id.toLowerCase().includes(search.toLowerCase()) ||
+                        (emp.designation && emp.designation.toLowerCase().includes(search.toLowerCase()));
+    
     const matchDept = deptFilter === '' || String(emp.department_id) === deptFilter;
     return matchSearch && matchDept;
   });
+
+  // Create list of designation options (predefined + current custom if editing)
+  const titleOptions = [...predefinedTitles];
+  if (designation && !titleOptions.includes(designation)) {
+    titleOptions.push(designation);
+  }
 
   return (
     <div className="emp-management-page">
       <div className="emp-page-header">
         <div>
-          <h2>Employee Files</h2>
-          <p>Create, update, inspect, and delete employee profile profiles.</p>
+          <h2>Employee Directory & Management</h2>
+          <p>Register new hires, correct employee profiles, and scale base contract details.</p>
         </div>
         <button onClick={handleOpenAdd} className="add-employee-btn">
           ➕ Register New Employee
         </button>
       </div>
 
-      {/* Filters */}
+      {/* Filter Options */}
       <div className="emp-filters-card">
         <input 
           type="text" 
-          placeholder="Search by name, email, designation..." 
-          value={search}
+          placeholder="Search by Employee ID, name, title..." 
+          value={search} 
           onChange={(e) => setSearch(e.target.value)}
           className="search-input"
         />
@@ -192,34 +263,34 @@ const EmployeeManagement = () => {
         </select>
       </div>
 
-      {/* Grid List */}
-      {loading ? (
-        <div className="list-loading">Refreshing employee files...</div>
-      ) : (
-        <div className="emp-records-table-card">
+      {/* Employees logs list */}
+      <div className="emp-records-table-card">
+        {loading ? (
+          <div className="list-loading">Compiling corporate records directory...</div>
+        ) : (
           <div className="table-responsive">
             <table className="hrms-table">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Full Name</th>
+                  <th>Employee ID</th>
+                  <th>Employee Name</th>
                   <th>Department</th>
-                  <th>Designation</th>
-                  <th>Phone</th>
-                  <th>Joined Date</th>
-                  <th>Salary Config</th>
+                  <th>Designation / Title</th>
+                  <th>Phone Number</th>
+                  <th>Joining Date</th>
+                  <th>Monthly Salary</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center' }}>No employees registered matching current filters.</td>
+                    <td colSpan="8" style={{ textAlign: 'center' }}>No employee profiles match search criteria.</td>
                   </tr>
                 ) : (
                   filteredEmployees.map((emp) => (
                     <tr key={emp.employee_id}>
-                      <td>EMP-{emp.employee_id}</td>
+                      <td style={{ fontWeight: '600' }}>{emp.employee_id}</td>
                       <td>
                         <div className="name-email-col">
                           <strong>{emp.full_name}</strong>
@@ -230,7 +301,7 @@ const EmployeeManagement = () => {
                       <td>{emp.designation || 'Staff'}</td>
                       <td>{emp.phone || '-'}</td>
                       <td>{new Date(emp.joining_date).toLocaleDateString()}</td>
-                      <td className="salary-col">${parseFloat(emp.salary).toLocaleString()}</td>
+                      <td className="salary-col">₹{parseFloat(emp.salary).toLocaleString()}</td>
                       <td>
                         <div className="actions-button-row">
                           <button onClick={() => handleOpenEdit(emp.employee_id)} className="edit-action-btn">
@@ -247,68 +318,96 @@ const EmployeeManagement = () => {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* CRUD MODAL */}
+      {/* CREATE / EDIT OVERLAY MODAL */}
       {showModal && (
         <div className="hrms-modal-overlay">
           <div className="hrms-modal-card">
             <div className="modal-header">
-              <h3>{modalMode === 'add' ? 'Register New Employee' : 'Edit Employee Details'}</h3>
+              <h3>{modalMode === 'add' ? 'Register New Corporate Employee' : 'Edit Employee Profile'}</h3>
               <button className="close-modal-btn" onClick={() => setShowModal(false)}>×</button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="modal-form">
-              <div className="form-group">
-                <label className="form-label">Full Name</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required 
-                  disabled={saving}
-                />
+              <div className="form-row-2">
+                <div className="form-group">
+                  <label className="form-label">First Name</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required 
+                    disabled={saving}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Last Name</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required 
+                    disabled={saving}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row-2">
+                <div className="form-group">
+                  <label className="form-label">Email Address (Login Username)</label>
+                  <input 
+                    type="email" 
+                    className="form-input" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required 
+                    disabled={saving}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Joining Date</label>
+                  <input 
+                    type="date" 
+                    className="form-input" 
+                    value={joiningDate}
+                    onChange={(e) => setJoiningDate(e.target.value)}
+                    required 
+                    disabled={saving}
+                  />
+                </div>
               </div>
 
               {modalMode === 'add' && (
-                <>
+                <div className="form-row-2">
                   <div className="form-group">
-                    <label className="form-label">Email Address</label>
+                    <label className="form-label">Organization Name</label>
                     <input 
-                      type="email" 
+                      type="text" 
                       className="form-input" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
                       required 
                       disabled={saving}
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Initial Password (defaults to password123)</label>
-                    <input 
-                      type="password" 
-                      className="form-input" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="password123"
-                      disabled={saving}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">System Access Role</label>
+                    <label className="form-label">Role Access Privilege</label>
                     <select 
                       value={role} 
                       onChange={(e) => setRole(e.target.value)}
                       className="form-input"
                       disabled={saving}
+                      required
                     >
                       <option value="Employee">Employee</option>
                       <option value="Admin">Admin / HR Manager</option>
                     </select>
                   </div>
-                </>
+                </div>
               )}
 
               <div className="form-row-2">
@@ -352,14 +451,17 @@ const EmployeeManagement = () => {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Designation / Title</label>
-                  <input 
-                    type="text" 
+                  <select 
                     className="form-input" 
                     value={designation}
                     onChange={(e) => setDesignation(e.target.value)}
-                    required 
                     disabled={saving}
-                  />
+                    required
+                  >
+                    {titleOptions.map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -383,6 +485,40 @@ const EmployeeManagement = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* CREATION SUCCESS CREDENTIALS OVERLAY MODAL */}
+      {showSuccessModal && (
+        <div className="hrms-modal-overlay">
+          <div className="hrms-modal-card success-card-banner">
+            <div className="modal-header success-header">
+              <h3>Employee account created successfully.</h3>
+              <button className="close-modal-btn" onClick={() => setShowSuccessModal(false)}>×</button>
+            </div>
+            <div className="modal-form success-credentials-body">
+              <p className="success-instruction">
+                Please share the generated Employee ID and secure temporary password with the employee. They will be prompted to reset it on their first login session.
+              </p>
+              
+              <div className="credential-row">
+                <span>Employee Login ID:</span>
+                <strong>{createdEmpId}</strong>
+              </div>
+              
+              <div className="credential-row">
+                <span>Temporary Password:</span>
+                <strong className="temp-pwd">{createdTempPassword}</strong>
+              </div>
+
+              <button 
+                onClick={() => setShowSuccessModal(false)} 
+                className="modal-save-btn success-dismiss-btn"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

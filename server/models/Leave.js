@@ -1,7 +1,7 @@
 import pool from '../config/db.js';
 
 class Leave {
-  static async create({ employeeId, leaveType, startDate, endDate, reason }) {
+  static async create({ employeeId, leaveType, startDate, endDate, reason, attachmentUrl }) {
     // Calculate number of days
     const sDate = new Date(startDate);
     const eDate = new Date(endDate);
@@ -9,11 +9,11 @@ class Leave {
     const numberOfDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
     const query = `
-      INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, number_of_days, reason, status)
-      VALUES ($1, $2, $3, $4, $5, $6, 'Pending')
+      INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, number_of_days, reason, status, attachment_url)
+      VALUES ($1, $2, $3, $4, $5, $6, 'Pending', $7)
       RETURNING *;
     `;
-    const { rows } = await pool.query(query, [employeeId, leaveType, startDate, endDate, numberOfDays, reason]);
+    const { rows } = await pool.query(query, [employeeId, leaveType, startDate, endDate, numberOfDays, reason, attachmentUrl || null]);
     return rows[0];
   }
 

@@ -1,0 +1,70 @@
+.attendance-card {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  max-width: 420px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.attendance-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.attendance-card-icon { font-size: 22px; }
+.attendance-card-label { font-size: 12px; opacity: 0.8; margin: 0; }
+.attendance-card-date { font-size: 16px; font-weight: 600; margin: 0; }
+
+.attendance-card-times {
+  display: flex;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+.attendance-card-times > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.time-label { font-size: 11px; opacity: 0.8; }
+.time-value { font-size: 14px; font-weight: 600; }
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  width: fit-content;
+}
+.status-present { background: #16a34a; }
+.status-absent { background: #dc2626; }
+.status-half-day { background: #f59e0b; }
+.status-leave { background: #6366f1; }
+
+.attendance-card-actions {
+  display: flex;
+  gap: 10px;
+}
+.btn-checkin, .btn-checkout {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn-checkin { background: #22c55e; color: #fff; }
+.btn-checkout { background: #ffffff; color: #4f46e5; }
+.btn-checkin:disabled, .btn-checkout:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
