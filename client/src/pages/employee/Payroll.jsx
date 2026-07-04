@@ -64,7 +64,7 @@ const Payroll = () => {
                   onClick={() => setSelectedStatement(s)}
                 >
                   <span className="statement-month">{s.month} {s.year}</span>
-                  <span className="statement-amount">${parseFloat(s.net_salary).toLocaleString()}</span>
+                  <span className="statement-amount">₹{parseFloat(s.net_salary).toLocaleString()}</span>
                 </button>
               ))}
             </div>
@@ -116,15 +116,15 @@ const Payroll = () => {
                     <h4>Earnings</h4>
                     <div className="breakdown-row">
                       <span>Basic Salary:</span>
-                      <strong>${parseFloat(selectedStatement.basic_salary).toLocaleString()}</strong>
+                      <strong>₹{parseFloat(selectedStatement.basic_salary).toLocaleString()}</strong>
                     </div>
                     <div className="breakdown-row">
                       <span>Bonus / Allowances:</span>
-                      <strong>${parseFloat(selectedStatement.bonus).toLocaleString()}</strong>
+                      <strong>₹{parseFloat(selectedStatement.bonus).toLocaleString()}</strong>
                     </div>
                     <div className="breakdown-row total-row">
                       <span>Gross Earnings:</span>
-                      <strong>${(parseFloat(selectedStatement.basic_salary) + parseFloat(selectedStatement.bonus)).toLocaleString()}</strong>
+                      <strong>₹{(parseFloat(selectedStatement.basic_salary) + parseFloat(selectedStatement.bonus)).toLocaleString()}</strong>
                     </div>
                   </div>
 
@@ -132,15 +132,15 @@ const Payroll = () => {
                     <h4>Deductions</h4>
                     <div className="breakdown-row">
                       <span>PF / Professional Taxes:</span>
-                      <strong>${parseFloat(selectedStatement.deductions).toLocaleString()}</strong>
+                      <strong>₹{parseFloat(selectedStatement.deductions).toLocaleString()}</strong>
                     </div>
                     <div className="breakdown-row">
                       <span>Other Deductions:</span>
-                      <strong>$0.00</strong>
+                      <strong>₹0.00</strong>
                     </div>
                     <div className="breakdown-row total-row">
                       <span>Total Deductions:</span>
-                      <strong>${parseFloat(selectedStatement.deductions).toLocaleString()}</strong>
+                      <strong>₹{parseFloat(selectedStatement.deductions).toLocaleString()}</strong>
                     </div>
                   </div>
                 </div>
@@ -151,7 +151,7 @@ const Payroll = () => {
                 <div className="slip-footer-summary">
                   <div className="net-pay-words">
                     <span>Net Pay Amount (in figures)</span>
-                    <h3>${parseFloat(selectedStatement.net_salary).toLocaleString()}</h3>
+                    <h3>₹{parseFloat(selectedStatement.net_salary).toLocaleString()}</h3>
                   </div>
                   <div className="signature-box">
                     <div className="signature-line"></div>

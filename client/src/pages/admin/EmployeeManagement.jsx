@@ -230,7 +230,7 @@ const EmployeeManagement = () => {
                       <td>{emp.designation || 'Staff'}</td>
                       <td>{emp.phone || '-'}</td>
                       <td>{new Date(emp.joining_date).toLocaleDateString()}</td>
-                      <td className="salary-col">${parseFloat(emp.salary).toLocaleString()}</td>
+                      <td className="salary-col">₹{parseFloat(emp.salary).toLocaleString()}</td>
                       <td>
                         <div className="actions-button-row">
                           <button onClick={() => handleOpenEdit(emp.employee_id)} className="edit-action-btn">

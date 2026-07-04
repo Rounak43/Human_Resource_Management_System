@@ -4,10 +4,12 @@
   align-items: center;
   justify-content: center;
   background-color: var(--bg-app);
-  padding: var(--spacing-md);
+  padding: var(--spacing-xl) var(--spacing-md);
+  overflow-y: auto;
 }
 
 .auth-card-wrapper {
+  margin: auto;
   width: 100%;
   max-width: 440px;
   background-color: var(--bg-card);

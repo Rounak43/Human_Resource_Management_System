@@ -91,7 +91,7 @@ const Profile = () => {
               </div>
               <div className="detail-item">
                 <label>Current Monthly Basic Salary</label>
-                <span className="salary-text">${parseFloat(profile.salary || 0).toLocaleString()}</span>
+                <span className="salary-text">₹{parseFloat(profile.salary || 0).toLocaleString()}</span>
               </div>
             </div>
 
