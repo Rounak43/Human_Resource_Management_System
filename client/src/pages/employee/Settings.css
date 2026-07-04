@@ -1,0 +1,7 @@
+.employee-settings {
+  background-color: var(--bg-card);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}

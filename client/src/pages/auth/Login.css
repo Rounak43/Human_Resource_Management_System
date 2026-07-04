@@ -1,0 +1,33 @@
+.login-page h2 {
+  text-align: center;
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-xl);
+}
+
+.login-page p {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-xl);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-submit-btn {
+  background-color: var(--primary-color);
+  color: var(--text-on-primary);
+  border: none;
+  padding: 0.75rem;
+  border-radius: var(--border-radius-md);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  margin-top: var(--spacing-md);
+  transition: background-color var(--transition-fast);
+}
+
+.login-submit-btn:hover {
+  background-color: var(--primary-hover);
+}

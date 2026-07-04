@@ -1,0 +1,7 @@
+.salary-slip {
+  background-color: var(--bg-card);
+  padding: var(--spacing-lg);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--border-radius-md);
+  margin-top: var(--spacing-md);
+}

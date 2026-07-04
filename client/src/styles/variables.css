@@ -1,0 +1,103 @@
+/* HRMS Premium CSS Variables - Design Tokens */
+:root {
+  /* Harmonious Modern HSL Color Palette */
+  --primary-hue: 220;
+  --secondary-hue: 260;
+  
+  /* Light Theme Brand Colors */
+  --primary-color: HSL(var(--primary-hue), 85%, 57%);
+  --primary-hover: HSL(var(--primary-hue), 85%, 48%);
+  --primary-light: HSL(var(--primary-hue), 90%, 96%);
+  
+  --secondary-color: HSL(var(--secondary-hue), 70%, 50%);
+  --secondary-hover: HSL(var(--secondary-hue), 70%, 42%);
+  --secondary-light: HSL(var(--secondary-hue), 80%, 95%);
+
+  /* Neutrals */
+  --bg-app: HSL(210, 20%, 98%);
+  --bg-card: HSL(0, 0%, 100%);
+  --bg-sidebar: HSL(222, 47%, 11%); /* Sleek dark navigation even in light mode */
+  --sidebar-text: HSL(210, 40%, 96%);
+  --sidebar-hover: HSL(217, 33%, 20%);
+  
+  --text-primary: HSL(220, 20%, 15%);
+  --text-secondary: HSL(220, 10%, 45%);
+  --text-muted: HSL(220, 10%, 65%);
+  --text-on-primary: HSL(0, 0%, 100%);
+
+  /* Semantic Alerts */
+  --success-color: HSL(145, 80%, 42%);
+  --success-light: HSL(145, 80%, 96%);
+  --warning-color: HSL(38, 95%, 50%);
+  --warning-light: HSL(38, 95%, 96%);
+  --danger-color: HSL(355, 85%, 55%);
+  --danger-light: HSL(355, 85%, 96%);
+  --info-color: HSL(195, 85%, 50%);
+  --info-light: HSL(195, 85%, 96%);
+
+  /* Typography */
+  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-xxl: 1.75rem;
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-xxl: 3rem;
+
+  /* Borders & Shadows */
+  --border-radius-sm: 6px;
+  --border-radius-md: 10px;
+  --border-radius-lg: 16px;
+  --border-radius-round: 50%;
+  
+  --border-color: HSL(220, 15%, 90%);
+  --border-color-hover: HSL(220, 15%, 80%);
+
+  --shadow-sm: 0 2px 4px RGBA(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px RGBA(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 24px RGBA(0, 0, 0, 0.08);
+
+  /* Layout Widths */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 80px;
+  --navbar-height: 70px;
+  --max-content-width: 1400px;
+
+  /* Animation & Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dark Mode Color Overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-app: HSL(220, 25%, 8%);
+    --bg-card: HSL(220, 25%, 12%);
+    --bg-sidebar: HSL(220, 25%, 10%);
+    
+    --text-primary: HSL(0, 0%, 94%);
+    --text-secondary: HSL(220, 10%, 75%);
+    --text-muted: HSL(220, 10%, 55%);
+    
+    --border-color: HSL(220, 20%, 20%);
+    --border-color-hover: HSL(220, 20%, 28%);
+
+    --shadow-sm: 0 2px 4px RGBA(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 12px RGBA(0, 0, 0, 0.3);
+    --shadow-lg: 0 12px 24px RGBA(0, 0, 0, 0.45);
+  }
+}
