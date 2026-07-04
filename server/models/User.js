@@ -2,34 +2,57 @@ import pool from '../config/db.js';
 
 /**
  * User Database Model Interface
- * 
- * Responsibilities:
- * - Query users table for authentication logic.
- * - Execute raw parametrized SQL statements to prevent SQL injections.
- * 
- * Target: Developer D (Database & Models)
  */
 class User {
   static async findByEmail(email) {
-    const query = 'SELECT * FROM users WHERE email = $1';
+    const query = `
+      SELECT u.id, u.employee_id, u.email, u.password_hash, u.role_id, u.is_active, r.role_name, e.full_name
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+      LEFT JOIN employees e ON u.employee_id = e.employee_id
+      WHERE u.email = $1;
+    `;
     const { rows } = await pool.query(query, [email]);
     return rows[0];
   }
 
-  static async create({ name, email, hashedPassword, role }) {
+  static async create({ email, password_hash, role_name, employee_id }) {
+    // Find role_id from role_name
+    let roleId = 2; // Default to Employee (2)
+    if (role_name && (role_name.toLowerCase() === 'admin' || role_name.toLowerCase() === 'hr')) {
+      roleId = 1;
+    }
+
     const query = `
-      INSERT INTO users (name, email, password, role)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, name, email, role, created_at;
+      INSERT INTO users (employee_id, email, password_hash, role_id, is_active)
+      VALUES ($1, $2, $3, $4, TRUE)
+      RETURNING id, employee_id, email, role_id, created_at;
     `;
-    const values = [name, email, hashedPassword, role || 'employee'];
+    const values = [employee_id, email, password_hash, roleId];
     const { rows } = await pool.query(query, values);
     return rows[0];
   }
 
   static async findById(id) {
-    const query = 'SELECT id, name, email, role, created_at FROM users WHERE id = $1';
+    const query = `
+      SELECT u.id, u.employee_id, u.email, u.role_id, u.is_active, r.role_name, e.full_name
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+      LEFT JOIN employees e ON u.employee_id = e.employee_id
+      WHERE u.id = $1;
+    `;
     const { rows } = await pool.query(query, [id]);
+    return rows[0];
+  }
+
+  static async updatePassword(id, passwordHash) {
+    const query = `
+      UPDATE users
+      SET password_hash = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+      RETURNING id, email;
+    `;
+    const { rows } = await pool.query(query, [passwordHash, id]);
     return rows[0];
   }
 }

@@ -1,11 +1,42 @@
-.register-page h2 {
+.register-page {
+  display: flex;
+  flex-direction: column;
   text-align: center;
+}
+
+.register-page h2 {
+  font-size: var(--font-size-xl);
   margin-bottom: var(--spacing-xs);
 }
 
 .register-page p {
-  text-align: center;
-  color: var(--text-secondary);
   font-size: var(--font-size-sm);
-  margin-bottom: var(--spacing-xl);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  text-align: left;
+}
+
+.register-submit-btn {
+  background: var(--primary-color);
+  color: var(--text-on-primary);
+  padding: 0.8rem;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.register-submit-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.register-footer {
+  margin-top: var(--spacing-lg);
 }

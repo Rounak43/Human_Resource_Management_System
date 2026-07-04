@@ -25,6 +25,7 @@ import EmployeeManagement from '../pages/admin/EmployeeManagement';
 import AttendanceManagement from '../pages/admin/AttendanceManagement';
 import LeaveManagement from '../pages/admin/LeaveManagement';
 import PayrollManagement from '../pages/admin/PayrollManagement';
+import Departments from '../pages/admin/Departments';
 import Reports from '../pages/admin/Reports';
 
 // Guards
@@ -33,10 +34,6 @@ import RoleGuard from './RoleGuard';
 
 /**
  * AppRoutes Component
- * 
- * Responsibilities:
- * - Define application routing structure.
- * - Enforce Route protection via ProtectedRoute and RoleGuard wrapper layers.
  */
 const AppRoutes = () => {
   return (
@@ -65,6 +62,7 @@ const AppRoutes = () => {
         <Route path="/admin/attendance" element={<AttendanceManagement />} />
         <Route path="/admin/leaves" element={<LeaveManagement />} />
         <Route path="/admin/payroll" element={<PayrollManagement />} />
+        <Route path="/admin/departments" element={<Departments />} />
         <Route path="/admin/reports" element={<Reports />} />
       </Route>
 

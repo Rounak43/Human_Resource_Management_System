@@ -9,12 +9,7 @@ export const attendanceService = {
       throw new NotFoundError('Employee profile not found');
     }
 
-    // Business Logic: Check if checkInTime is past 9:00 AM (to mark status as 'late' vs 'present')
-    const time = new Date(checkInTime);
-    const hours = time.getHours();
-    const status = (hours >= 9) ? 'late' : 'present';
-
-    return Attendance.checkIn(employee.employee_id, checkInTime, status);
+    return Attendance.checkIn(employee.employee_id, checkInTime);
   },
 
   checkOut: async (userId, checkOutTime) => {
@@ -35,4 +30,3 @@ export const attendanceService = {
     return Attendance.getHistory(employee.employee_id, month);
   }
 };
-// target: Developer B

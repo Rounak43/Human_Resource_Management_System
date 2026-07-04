@@ -1,7 +1,6 @@
 import Leave from '../models/Leave.js';
 import Employee from '../models/Employee.js';
 import { NotFoundError, BadRequestError } from '../utils/errors.js';
-import { calculateDateDifference } from '../utils/helpers.js';
 
 export const leaveService = {
   applyLeave: async (userId, { leaveType, startDate, endDate, remarks }) => {
@@ -10,8 +9,9 @@ export const leaveService = {
       throw new NotFoundError('Employee profile not found');
     }
 
-    const duration = calculateDateDifference(startDate, endDate);
-    if (duration <= 0) {
+    const sDate = new Date(startDate);
+    const eDate = new Date(endDate);
+    if (eDate < sDate) {
       throw new BadRequestError('Invalid leave date range selected');
     }
 
@@ -20,7 +20,7 @@ export const leaveService = {
       leaveType,
       startDate,
       endDate,
-      remarks
+      reason: remarks
     });
   },
 

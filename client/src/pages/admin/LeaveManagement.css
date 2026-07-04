@@ -1,5 +1,86 @@
-.leave-management {
+.leave-mgmt-page {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.mgmt-header h2 {
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.mgmt-header p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.leave-requests-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.reason-td {
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-secondary);
+}
+
+.leave-actions-triggers {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.leave-actions-triggers button {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.approve-btn {
+  background-color: var(--success-light);
+  color: var(--success-color);
+  border-color: var(--success-light) !important;
+}
+
+.approve-btn:hover {
+  background-color: var(--success-color);
+  color: #fff;
+  border-color: var(--success-color) !important;
+}
+
+.reject-btn {
+  background-color: var(--danger-light);
+  color: var(--danger-color);
+  border-color: var(--danger-light) !important;
+}
+
+.reject-btn:hover {
+  background-color: var(--danger-color);
+  color: #fff;
+  border-color: var(--danger-color) !important;
+}
+
+.reject-submit-btn {
+  background-color: var(--danger-color) !important;
+}
+
+.reject-submit-btn:hover {
+  background-color: HSL(355, 85%, 45%) !important;
+}
+
+.audited-placeholder {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }

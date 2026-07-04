@@ -1,75 +1,114 @@
 -- PostgreSQL HRMS Database Schema Setup
+-- Clean start for production schema matching
+DROP TABLE IF EXISTS notifications, payroll, leave_requests, leave, attendance, employees, users, departments, roles CASCADE;
 
--- Enable UUID extension if required in future
--- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- 1. Users Table (Core Auth Credentials)
-CREATE TABLE IF NOT EXISTS users (
+-- 1. Roles Table
+CREATE TABLE roles (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(150) NOT NULL,
-    email VARCHAR(180) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL DEFAULT 'employee' CHECK (role IN ('employee', 'admin', 'hr')),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    role_name VARCHAR(50) UNIQUE NOT NULL
 );
 
--- 2. Employees Table (Extended Profile Data)
-CREATE TABLE IF NOT EXISTS employees (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+-- 2. Departments Table
+CREATE TABLE departments (
+    department_id SERIAL PRIMARY KEY,
+    department_name VARCHAR(100) UNIQUE NOT NULL,
+    manager_id INTEGER
+);
+
+-- 3. Employees Table
+CREATE TABLE employees (
+    employee_id SERIAL PRIMARY KEY,
+    user_id INTEGER UNIQUE,
+    full_name VARCHAR(150) NOT NULL,
     phone VARCHAR(30),
     address TEXT,
-    department VARCHAR(100) NOT NULL,
-    designation VARCHAR(100) NOT NULL,
+    department_id INTEGER REFERENCES departments(department_id) ON DELETE SET NULL,
+    designation VARCHAR(100),
     joining_date DATE NOT NULL DEFAULT CURRENT_DATE,
     salary NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
-    profile_picture VARCHAR(255),
+    profile_image VARCHAR(255)
+);
+
+-- 4. Users Table (Core Auth Credentials)
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    employee_id INTEGER REFERENCES employees(employee_id) ON DELETE SET NULL,
+    email VARCHAR(180) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role_id INTEGER REFERENCES roles(id) ON DELETE SET NULL,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. Attendance Table (Daily logs)
-CREATE TABLE IF NOT EXISTS attendance (
-    id SERIAL PRIMARY KEY,
-    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
-    date DATE NOT NULL DEFAULT CURRENT_DATE,
-    check_in TIMESTAMP WITH TIME ZONE,
-    check_out TIMESTAMP WITH TIME ZONE,
-    status VARCHAR(30) NOT NULL DEFAULT 'absent' CHECK (status IN ('present', 'absent', 'late', 'half_day')),
-    CONSTRAINT unique_employee_date UNIQUE (employee_id, date)
+-- Add Circular Constraints
+ALTER TABLE employees ADD CONSTRAINT fk_employee_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE departments ADD CONSTRAINT fk_department_manager FOREIGN KEY (manager_id) REFERENCES employees(employee_id) ON DELETE SET NULL;
+
+-- 5. Attendance Table
+CREATE TABLE attendance (
+    attendance_id SERIAL PRIMARY KEY,
+    employee_id INTEGER NOT NULL REFERENCES employees(employee_id) ON DELETE CASCADE,
+    attendance_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    check_in_time TIMESTAMP WITH TIME ZONE,
+    check_out_time TIMESTAMP WITH TIME ZONE,
+    working_hours NUMERIC(5, 2) DEFAULT 0.00,
+    overtime_hours NUMERIC(5, 2) DEFAULT 0.00,
+    attendance_status VARCHAR(30) NOT NULL CHECK (attendance_status IN ('Present', 'Absent', 'Leave', 'Half Day', 'Holiday', 'Weekend')),
+    late_minutes INTEGER DEFAULT 0,
+    early_leave_minutes INTEGER DEFAULT 0,
+    remarks TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_employee_date UNIQUE (employee_id, attendance_date)
 );
 
--- 4. Leave Table (Requests tracking)
-CREATE TABLE IF NOT EXISTS leave (
-    id SERIAL PRIMARY KEY,
-    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
-    leave_type VARCHAR(50) NOT NULL CHECK (leave_type IN ('casual', 'sick', 'maternity', 'unpaid', 'annual')),
+-- 6. Leave Requests Table
+CREATE TABLE leave_requests (
+    leave_id SERIAL PRIMARY KEY,
+    employee_id INTEGER NOT NULL REFERENCES employees(employee_id) ON DELETE CASCADE,
+    leave_type VARCHAR(50) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
+    number_of_days INTEGER NOT NULL,
+    reason TEXT,
+    status VARCHAR(30) NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Rejected')),
+    approved_by INTEGER REFERENCES employees(employee_id) ON DELETE SET NULL,
+    approved_at TIMESTAMP WITH TIME ZONE,
     remarks TEXT,
-    status VARCHAR(30) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-    admin_comment TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT check_dates CHECK (end_date >= start_date)
 );
 
--- 5. Payroll Table (Salary records)
-CREATE TABLE IF NOT EXISTS payroll (
-    id SERIAL PRIMARY KEY,
-    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+-- 7. Payroll Table
+CREATE TABLE payroll (
+    payroll_id SERIAL PRIMARY KEY,
+    employee_id INTEGER NOT NULL REFERENCES employees(employee_id) ON DELETE CASCADE,
+    month VARCHAR(20) NOT NULL,
+    year INTEGER NOT NULL,
     basic_salary NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
     bonus NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
     deductions NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
     net_salary NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
-    month VARCHAR(7) NOT NULL, -- Format: YYYY-MM
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_employee_month UNIQUE (employee_id, month)
+    generated_by INTEGER REFERENCES employees(employee_id) ON DELETE SET NULL,
+    generated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_employee_month_year UNIQUE (employee_id, month, year)
 );
 
--- Indexes for performance optimizations
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_employees_user_id ON employees(user_id);
-CREATE INDEX IF NOT EXISTS idx_attendance_employee_date ON attendance(employee_id, date);
-CREATE INDEX IF NOT EXISTS idx_leave_employee_status ON leave(employee_id, status);
-CREATE INDEX IF NOT EXISTS idx_payroll_employee_month ON payroll(employee_id, month);
+-- 8. Notifications Table
+CREATE TABLE notifications (
+    notification_id SERIAL PRIMARY KEY,
+    employee_id INTEGER REFERENCES employees(employee_id) ON DELETE CASCADE,
+    title VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_employees_user_id ON employees(user_id);
+CREATE INDEX idx_attendance_employee_date ON attendance(employee_id, attendance_date);
+CREATE INDEX idx_leave_employee_status ON leave_requests(employee_id, status);
+CREATE INDEX idx_payroll_employee_period ON payroll(employee_id, month, year);
+CREATE INDEX idx_notifications_employee_read ON notifications(employee_id, is_read);
